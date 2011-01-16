@@ -1,0 +1,106 @@
+
+gui notes:
+ check hash distribution for all hashes
+
+bl4ckJack 0.1-1
+
+Inputs:
+	password file
+	password hash
+
+
+done - Configuration:
+
+	Brute Charset
+	Add/Del/Modify Module
+	Modules:
+		MD5
+		SHA1
+		NTLM
+		etc
+	GPU
+		% of keyspace assigned to CPU
+		threads per grid (slider? 0 - 1024, default: 256)
+		gpu refresh rate (ms, default 200)
+		MAX_PASS_INIT_MEM 8000640, MAX_PASS_INIT 8000640
+		PASS_SIZE 16
+		MAX_PASS_SIZE PASS_SIZE+1
+		uint64 pwb_nb = 1000000000; // total number of matches to test
+		init_bruteforce_gpu((uint)MAX_PWD_INIT_MEM, gpu_device_id);
+		ascii_hash_to_md5hash(MD5_str,&hash_to_crack);
+		set_md5_gpu_parameters(charset, (uint *)&hash_to_crack);
+		start_gpu_bruteforce(MD5_str, start_pwd, charset);
+		exit_bruteforce();
+
+
+50% - Output:
+	Progress bar
+	hashes a second
+
+Save:
+	xml cfg file
+	compress list of hashes and cfg options
+	(automatic?) session saving
+
+
+Modules Interface:
+	Init(void);
+	BOOL HashMatch(TCHAR *); HashMatchA/HashMatchW string to compare against internal regexes
+	BOOL Compare(TCHAR *); CompareA/CompareW string/salt to match against hash
+	
+	
+
+
+subscriber -> worker
+publisher -> gui
+
+publisher manage brute matrix across loads
+
+split keyspace:
+
+foreach i in 16 total char spaces:
+	(charset ie: 26)^i / (available clients)
+
+
+so 0 is 'aaaa' (for keyspace of 4 chars)
+and 26^4/10 = 2*26^3 + 15*26^2 + 15*26 + 15 -> 'cppp'
+
+base26
+
+base x
+
+void baseX(unsigned int base, float number, char *buf, size_t buf_len) {
+	number -= 1;
+	QString buf;
+
+	// repeatedly divide # by base and convert remainder into 
+	// appropriate character
+	do {
+		int remainder = number % base;
+		buf.prepend((char)(charset[remainder]))
+		number = number / base - 1;	
+	} while (number >= 0);
+}
+
+base10 for numbers -> 10 + 100 + 1000 + 10,000
+
+if working on #7
+
+
+todo:
+
+	implement status/callback during bruteforce
+		- progress call back (start, current, finish, pws cracked, avg_hash_a_sec)
+		- password call back (hash, password)
+
+	progressify it
+	implement IPC functions that DO the bruteforcing
+
+	bruteforce:
+		pass starting brute string and stopping brute string
+			ie: cppp, czzz
+		use these buffers to compute md5, compare against list/binarytree of hashes
+			binary tree start (sorted list middle node)
+			convert hash to double val and compare
+			http://www.macs.hw.ac.uk/~rjp/Coursewww/Cwww/tree.html
+
