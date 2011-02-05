@@ -57,7 +57,7 @@ public:
 public slots:
 	void updateUIFileAdd(QString, QString, QString, float);
 	void updateBruteStatus(int, int, QString);
-	void updateBruteLabels(double, qint64, qint64);
+	void updateBruteLabels(double, QString, qint64);
 	void updateBrutePassword(QString, QString);
 
  protected:

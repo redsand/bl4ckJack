@@ -31,28 +31,29 @@ public:
 
 class BruteForceStats {
 public:
-		BruteForceStats() { }
+		BruteForceStats() { 
+			milHashSec = 0;
+			totalHashFound = 0;
+			currentOpenTokens = 0;
+		}
 		void setHashSec(float m) {
 			this->milHashSec = m;
 		}
 		void setHashFound(float m) {
 			this->totalHashFound = m;
 		}
-		void setCurrentTokens(long double start, long double stop) {
-			this->currentStartToken = start;
-			this->currentStopToken = stop;
+		void setCurrentOpenTokens(long double s) {
+			currentOpenTokens = s;
 		}
 
 		void serialize(SF::Archive &archive) {
-			archive & milHashSec & totalHashFound & currentStartToken & currentStopToken;
+			archive & milHashSec & totalHashFound & currentOpenTokens;
 		}
 
 // private:
 	float milHashSec; // hash/sec in millions
 	float totalHashFound;
-	long double currentStartToken;
-	long double currentStopToken;
-
+	long double currentOpenTokens;
 };
 
 
@@ -60,9 +61,19 @@ class BruteForce {
 
 public:
 
+	bool getKeyspace;
+
 	BruteForce() {
+
+		
+		memset(&hThread, 0, sizeof(hThread));
+		memset(&hThreadCPU, 0, sizeof(hThreadCPU));
+		memset(&hThreadGPU, 0, sizeof(hThreadGPU));
+		this->stopRunning = FALSE;
+		this->getKeyspace = true;
+		this->EnabledModule = "Default Module";
 		this->base = NULL;
-		this->stats.milHashSec = this->stats.currentStartToken = this->stats.currentStopToken = this->stats.totalHashFound = 0;
+		this->stats.milHashSec = this->stats.totalHashFound = 0;
 	}
 
 	~BruteForce() {
@@ -70,16 +81,55 @@ public:
 		if(this->base) {
 			delete this->base;
 			this->base = NULL;
+			/*
+			if(hThread) {
+#ifdef WIN32
+				TerminateThread(hThread, 0);
+#else
+				pthread_kill(hThread, 0);
+#endif
+			}
+			if(hThreadCPU) {
+#ifdef WIN32
+				TerminateThread(hThreadCPU, 0);
+#else
+				pthread_kill(hThreadCPU, 0);
+#endif
+			}
+			if(hThreadGPU) {
+#ifdef WIN32
+				TerminateThread(hThreadGPU, 0);
+#else
+				pthread_kill(hThreadGPU, 0);
+#endif
+			}
+			*/
 		}
+
+		// clear our btree
+		this->btree.destroy();
 	}
 	
 	BruteForceStats getStats(BruteForceStats &s) {
-		
+
 		this->statsMutex.lock();
 		s.milHashSec = this->stats.milHashSec;
 		s.totalHashFound = this->stats.totalHashFound;
-		s.currentStartToken = this->stats.currentStartToken;
-		s.currentStopToken = this->stats.currentStopToken;
+		this->stats.totalHashFound = 0;
+		this->stats.milHashSec = 0;
+		// calc our current open tokens:
+		//
+		this->stats.currentOpenTokens = 0;
+		for(int i = 0; i < CPUkeyspaceList.size(); i++) {
+			this->stats.currentOpenTokens += (CPUkeyspaceList[i].second - CPUkeyspaceList[i].first);
+		}
+		s.currentOpenTokens = this->stats.currentOpenTokens;
+		
+		/*
+		for(int i = 0; i < GPUkeyspaceList.size(); i++) {
+			this->stats.currentOpenTokens += (GPUkeyspaceList[i].second - GPUkeyspaceList[i].first);
+		}
+		*/
 		this->statsMutex.unlock();
 		return s;
 	}
@@ -142,6 +192,8 @@ private:
 	QMutex statsMutex;
 
 	BinSTree btree;
+
+	BOOL stopRunning;
 
 	std::vector< BruteForceMatch > matchList;
 	

@@ -15,10 +15,10 @@
 RCF_BEGIN(RemoteService, "RemoteService")
 	RCF_METHOD_R1(BruteForceStats, getStats, BruteForceStats &);
 	RCF_METHOD_R1(BruteForceMatch, getMatch, BruteForceMatch &);
-    RCF_METHOD_V0(void, initKeyspace);
+    RCF_METHOD_R2(BOOL, submitKeyspace, long double, long double);
+	RCF_METHOD_V0(void, initKeyspace);
 	RCF_METHOD_V0(void, initHash);
 	RCF_METHOD_V0(void, initModule);
-	RCF_METHOD_V2(void, submitKeyspace, long double, long double);
 	RCF_METHOD_V0(void, start);
 	RCF_METHOD_V0(void, stop);
 	RCF_METHOD_V0(void, clearKeyspace);
@@ -27,6 +27,15 @@ RCF_END(RemoteService);
 class RemoteServiceImpl
 {
 public:
+
+	RemoteServiceImpl() {
+		this->brute = new BruteForce();
+	}
+
+	~RemoteServiceImpl() {
+		delete this->brute;
+	}
+
 
 	/*
 		- add keyspace to array/queue for processing
@@ -50,7 +59,7 @@ public:
 	void initModule(void);
 	void start();
 	void stop();
-	void submitKeyspace(long double, long double);
+	BOOL submitKeyspace(long double, long double);
 	
 private:
 
@@ -60,6 +69,7 @@ private:
 	std::string EnabledModule;
 	std::vector< std::pair< long double, long double> > keyspaceList;
 	std::vector< std::string > hashList;
+
 };
 
 #endif

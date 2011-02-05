@@ -73,6 +73,7 @@
 	 QCheckBox *enableSSLCheckBox;
 	 QCheckBox *enableCompressionCheckBox;
 	 QLineEdit *txtMinimumTokens;
+	 QLineEdit *txtCPUTokenPercentage;
 	 QLineEdit *txtTimeout;
 	 QListWidget *serverList;
 

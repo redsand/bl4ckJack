@@ -28,6 +28,7 @@ void RemoteServiceImpl::initKeyspace(void) {
 	this->charset = charset;
 	qDebug() << "initKeyspace " << charset.c_str();
 	settings->setValue("config/current_charset", charset.c_str());
+
 }
 
 void RemoteServiceImpl::initHash(void) {
@@ -59,15 +60,25 @@ void RemoteServiceImpl::initModule(void) {
 	- clear array/queue of keyspace
  */
 
-void RemoteServiceImpl::submitKeyspace(long double start, long double stop) {
+BOOL RemoteServiceImpl::submitKeyspace(long double start, long double stop) {
 
 	std::pair< long double, long double > keypair;
 
-	keypair.first = start;
-	keypair.second = stop;
+	// if our current keypair is getting close, lets go ahead and get another.
 
-	this->keyspaceList.push_back(keypair);
-	qDebug() << "submitKeyspace low: " << (double)start << " high: " << (double)stop;
+	//this->keyspaceList.at(0).first
+	//this->brute->CPUkeyspaceList.at(0).first;
+	if(this->brute->getKeyspace == true) {	
+		this->brute->getKeyspace = false;
+		keypair.first = start;
+		keypair.second = stop;
+		this->keyspaceList.push_back(keypair);
+		qDebug() << "submitKeyspace low: " << (double)start << " high: " << (double)stop;
+		return TRUE;
+	} /* else
+		qDebug() << "submitKeyspace request denied, low: " << (double)start << " high: " << (double)stop;
+	  */
+	return FALSE;
 }
 
 #define HEXTOBIN(x) ( (x) >= '0' && (x) <= '9' ? ((x)-'0') : \
@@ -91,14 +102,10 @@ HexToBin (LPSTR p, int len)
 void RemoteServiceImpl::start() {
 	// start bruteforcing
 	qDebug() << "start bruteforce";
-
-	
-	this->brute = new BruteForce();
 	
 	this->brute->setModule(this->EnabledModule);
 
 	// start brute thread with given keyspaces
-	
 	
 	qDebug() << "creating hashList b-tree in host memory.";
 	// generate our BTree for comparison

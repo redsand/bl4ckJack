@@ -1,5 +1,8 @@
 
 #include "bl4ckJack_btree.h"
+#include <Qt>
+#include <QDebug>
+#include <QString>
 
 /* ******************************************************************* */
 /* *******************   NODE CLASS IMPLEMENTATION  ****************** */
@@ -46,31 +49,30 @@ bool BinSTree::find(void *key, size_t s)
 /* ******************************************************************* */
 void BinSTree::insert(void *el, size_t s)
 {
+	this->count++;
 	if (root == 0) {
 		root = new Node(el, s); 
-		this->count++;
+		error = false;
 	} else {
       Node *p = findNode(el, s);
       if (p == 0) {
-	  Node *parent = root;            // assume root is parent
-	  if (p != root)                  // can find parent, so let's do
-	    parent = findParent(el, s);
-	  if (greaterThan((unsigned char *)el, s, (unsigned char *)parent->data, parent->len))
-	    {
-	      parent->right = new Node(el, s); 
-	      current = parent->right;
-		  this->count++;
-	    }
-	  else
-	    {
-	      parent->left = new Node(el, s);
-	      current = parent->left;
-		  this->count++;
-	    }
-	  error = false; 
-	}
-      else                                // duplicate key, not inserted
-	error = true;
+		  Node *parent = root;            // assume root is parent
+		  if (p != root)                  // can find parent, so let's do
+			parent = findParent(el, s);
+		  if (greaterThan((unsigned char *)parent->data, parent->len, (unsigned char *)el, s))
+			{
+			  parent->left = new Node(el, s); 
+			  current = parent->left;
+			}
+		  else
+			{
+			  parent->right = new Node(el, s);
+			  current = parent->right;
+			}
+		  error = false; 
+	  }
+		  else                                // duplicate key, not inserted
+			error = true;
     }
 
 }
@@ -122,8 +124,9 @@ void BinSTree::remove(void* key, size_t s)
   if (p == 0)                                 // is node is in the tree ?
     error = true;
   else                                        // yes, let's proceed
-    {
-      if ((p->right == 0) && (p->left == 0))       // deleting leaf - easy ...
+  {
+	this->count--;
+    if ((p->right == 0) && (p->left == 0))       // deleting leaf - easy ...
 	{
 	  if (p != root)    // (can find parent now ...)   
 	    {
@@ -139,7 +142,7 @@ void BinSTree::remove(void* key, size_t s)
 	  error = false;
 	  current = root;
 	}
-      else if ((p->right == 0) && (p->left != 0))  // right subtree empty,
+    else if ((p->right == 0) && (p->left != 0))  // right subtree empty,
                                                    // left subtree not.
 	{
 	  if (p != root)    // (can find parent now ...)
@@ -189,13 +192,12 @@ void BinSTree::remove(void* key, size_t s)
 	  current = root;
 	}
     }
-  if(!error)
-	  this->count--;
 }
 /* ******************************************************************* */
 void BinSTree::destroy(void)
 {
   destroyNode(root);
+  this->count = 0;
 }
 
 /* ******************************************************************* */
@@ -236,6 +238,7 @@ void BinSTree::destroyNode(Node *p)
     {
       destroyNode(p->left);
       destroyNode(p->right);
+	  delete(p->data);
       delete(p);
     }
 }
@@ -246,7 +249,7 @@ Node* BinSTree::findParent(void *key, size_t s)
    while ((p != 0) && (!equals((unsigned char *)p->data, p->len, (unsigned char *)key, s)))
      {
        q = p;
-       if (greaterThan((unsigned char *)p->data, p->len, (unsigned char *)key, s))
+	   if (greaterThan((unsigned char *)p->data, p->len, (unsigned char *)key, s))
 		p = p->left;
        else
 		p = p->right;
@@ -262,8 +265,12 @@ bool BinSTree::lessThan(unsigned char *base, size_t baseLen, unsigned char *comp
 	if(!compare) return false;
 
 	for(i=0; i < baseLen, i < compareLen; i++) {
-		if(base[i] >= compare[i])
+		if(compare[i] > base[i])
 			return false;
+		else if(compare[i] == base[i])
+			continue;
+		else
+			return true;
 	}
 
 	return true;
@@ -271,14 +278,22 @@ bool BinSTree::lessThan(unsigned char *base, size_t baseLen, unsigned char *comp
 
 bool BinSTree::greaterThan(unsigned char *base, size_t baseLen, unsigned char *compare, size_t compareLen) {
 
-
+	//char buf[256];
 	register unsigned int i=0;
 	if(!base) return false;
 	if(!compare) return false;
-
+	//qDebug() << "Comparing 2 hashes of size " << baseLen;
 	for(i=0; i < baseLen, i < compareLen; i++) {
-		if((unsigned char) ((unsigned char *)base[i]) <= (unsigned char)((unsigned char *)compare[i])) 
+		//sprintf_s(buf, sizeof(buf)-1, "cmp %02X with %02X", (unsigned char)compare[i] & 0xff, (unsigned char) base[i] & 0xff);
+		//qDebug() << buf;
+		
+		if(compare[i] < base[i])
 			return false;
+		else if(compare[i] == base[i])
+			continue;
+		else
+			return true;
+
 	}
 
 	return true;
@@ -292,7 +307,7 @@ bool BinSTree::equals(unsigned char *base, size_t baseLen, unsigned char *compar
 	if(!compare) return false;
 
 	for(i=0; i < baseLen, i < compareLen; i++) {
-		if((unsigned char) ((unsigned char *)base[i]) != (unsigned char)((unsigned char *)compare[i])) 
+		if(base[i] != compare[i]) 
 			return false;
 	}
 
@@ -305,11 +320,12 @@ Node* BinSTree::findNode(void *key, size_t s)
      value 'key' if it is in the tree. Otherwise, it returns null */
 {
    Node *p = root;
-   while ((p != 0) && (!equals((unsigned char *)p->data, p->len, (unsigned char *)key, s)))
+   while ((p != 0) && (!equals((unsigned char *)p->data, p->len, (unsigned char *)key, s))) {
      if (greaterThan((unsigned char *)p->data, p->len, (unsigned char *)key, s))
        p = p->left;
      else
        p = p->right;
+   }
    return p;
 }
 /* ******************************************************************* */

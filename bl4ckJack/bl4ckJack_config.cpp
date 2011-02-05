@@ -200,6 +200,8 @@ ModulesPage	*modPage = NULL;
 	inputMaxPasswordSize->setMaximumWidth(32);
 	inputMaxPasswordSize->setMinimumWidth(32);
 
+
+
 	inputEnableHardwareMonitoring = new QCheckBox(tr("Enable GPU Hardware Health Monitoring"));
 	if(settings->value("config/gpu_health_monitor_enabled").toBool()) {
 		inputEnableHardwareMonitoring->setChecked(true);
@@ -289,6 +291,11 @@ ModulesPage	*modPage = NULL;
 	txtMinimumTokens->setMaximumWidth(32);
 	txtMinimumTokens->setMinimumWidth(32);
 
+	txtCPUTokenPercentage = new QLineEdit(settings->value("config/dc_cpu_keyspace_pct",5).toString());
+	txtCPUTokenPercentage->setMaximumWidth(32);
+	txtCPUTokenPercentage->setMinimumWidth(32);
+
+
 	enableLocalServerCheckBox = new QCheckBox(tr("Enable Local Computing Service"));
 	if(settings->value("config/dc_local_service").toBool()) {
 		enableLocalServerCheckBox->setChecked(true);
@@ -330,6 +337,15 @@ ModulesPage	*modPage = NULL;
 	 label->setFixedWidth(256);
 	 cfgLayoutH->addWidget(label);
 	 cfgLayout->addLayout(cfgLayoutH);
+	 
+	 cfgLayoutH = new QHBoxLayout;
+	 cfgLayoutH->setAlignment(Qt::AlignLeft);
+	 cfgLayoutH->addWidget(txtCPUTokenPercentage);
+	 label = new QLabel(tr("Percentage of keyspace assigned per CPU"));
+	 label->setFixedWidth(256);
+	 cfgLayoutH->addWidget(label);
+	 cfgLayout->addLayout(cfgLayoutH);
+	 
 
 	 cfgLayoutH = new QHBoxLayout;
 	 cfgLayoutH->setAlignment(Qt::AlignLeft);
@@ -610,6 +626,8 @@ ModulesPage	*modPage = NULL;
 	 settings->setValue("config/dc_ssl_encryption", dcPage->enableSSLCheckBox->isChecked());
 	 settings->setValue("config/dc_minimum_tokens", dcPage->txtMinimumTokens->text().toLong());
 	 settings->setValue("config/dc_timeout", dcPage->txtTimeout->text().toLong());
+	 settings->setValue("config/dc_cpu_keyspace_pct", dcPage->txtCPUTokenPercentage->text().toLong()); 
+	
 
 	 QStringList lst;
 	 

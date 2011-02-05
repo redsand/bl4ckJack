@@ -203,8 +203,9 @@ void bl4ckJackBrute::doWork() {
 		
 		emit updateBruteStatus(3, ((i+1) / successfulServerList.count()) * 100, tr("Distributing tokens #%1 to remote host %2.").arg(tokeniter).arg(successfulServerList[i]));
 		try {
-			serverConList[i]->submitKeyspace(tokeniter * pertoken, ((tokeniter + 1) * pertoken) - 1);
-			tokeniter++;
+			if(serverConList[i]->submitKeyspace(tokeniter * pertoken, ((tokeniter + 1) * pertoken) - 1)) {
+				tokeniter++;
+			}
 		} catch(const RCF::Exception &e) {
 			emit updateBruteStatus(2, (float)((i+1) / successfulServerList.count()) * 100, tr("Failed to initialize our token #%1 with remote service %2, %3").arg(tokeniter).arg(serverList[i]).arg(e.getErrorString().c_str()));
 			continue;
@@ -234,10 +235,20 @@ void bl4ckJackBrute::doWork() {
 	
 	qint64 totalHashFound = 0;
 
+	int retry=0;
+
+	qint64 hashFoundPrev = 0;
+	double pct = 0.0;
+	long double seconds_left = 0.0;
+	int days = 0;
+	int hours = 0;
+	int minutes = 0;
+	int seconds = 0;
+
 	while(true) {
 		while(this->go == false) {
 			qDebug() << "paused.";
-			emit updateBruteStatus(3, 0, tr("Bruteforcing paused."));
+			emit updateBruteStatus(3, pct, tr("Bruteforcing paused."));
 			msleep(500);
 		}
 //		once completed, wait for progress updates and send more keys upon completion
@@ -253,37 +264,76 @@ void bl4ckJackBrute::doWork() {
 						break;
 					emit updateBrutePassword(QString(match.hash.c_str()), QString(match.password.c_str()));
 				} catch(const RCF::Exception &e) {
-					emit updateBruteStatus(3, 0, tr("Failed to get potential matches from remote host %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));
+					emit updateBruteStatus(3, pct, tr("Failed to get potential matches from remote host %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));
 					continue;
 				}
 			}
 		}
 
+		// for each connection, we need to get the # of keys NOT done, per host
+		// calc a final value of #'s to crack and then calc how long it will take
+		// by using our pps input
+
 		QString tmp;
 		long double pps = 0;
+		long double keysLeft = 0;
+		qint64 hashFoundPrev = 0;
 		for(i=0; i < serverConList.count(); i++) {
-			BruteForceStats s;
+			BruteForceStats *s = new BruteForceStats;
 			try {
-				serverConList[i]->getStats(s);
-				pps += s.milHashSec;
-				totalHashFound += s.totalHashFound;
+				serverConList[i]->getStats(*s);
+				pps += s->milHashSec;
+				keysLeft += s->currentOpenTokens;
+				totalHashFound += s->totalHashFound;
+				delete s;
 			} catch(const RCF::Exception &e) {
-				emit updateBruteStatus(3, 0, tr("Failed to get stats from remote host %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));
+				emit updateBruteStatus(3, pct, tr("Failed to get stats from remote host %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));
 				continue;
 			}
 
-			/*
-			if(s.currentStartToken == s.currentStopToken) {
-				// pass out our next token ?
-			}
-			*/
-
 			// need to get total keyspace left from hosts && from keyspaceList
+			if(retry++ % 10 == 0) {
+				for(i = 0; i < successfulServerList.count(); i++) {
+			
+					try {
+						if(serverConList[i]->submitKeyspace(tokeniter * pertoken, ((tokeniter + 1) * pertoken) - 1)) {
+							tokeniter++;
+							keysLeft +=  (((tokeniter + 1) * pertoken) - 1) - (tokeniter * pertoken);
+							//emit updateBruteStatus(3, pct, tr("Distributing tokens #%1 to remote host %2.").arg(tokeniter).arg(successfulServerList[i]));
+							//usleep(1000);
+						}
+					} catch(const RCF::Exception &e) {
+						//emit updateBruteStatus(2, pct, tr("Failed to initialize our token #%1 with remote service %2, %3").arg(tokeniter).arg(serverList[i]).arg(e.getErrorString().c_str()));
+						continue;
+					}
+				}
+				retry = 0;
+			}
+
 		}
 
-		emit updateBruteLabels(pps, 0, totalHashFound);
-		emit updateBruteStatus(3, 0, tr("Currently bruteforcing with %1 available nodes (%2 Mil/pps).").arg(successfulServerList.count()).arg(tmp.sprintf("%.2f",(double)pps)));
+		keysLeft += (pertoken * (tokencount - tokeniter));
+		// pps (a second)
+		// keysLeft (total keys)
 
+		if(pps > 0) {
+			seconds_left = keysLeft / (pps * 1000000);
+			//qDebug() << "Keysleft " << (double)keysLeft << " pps " << (double)(pps * 1000000) << " secLeft " << (double)seconds_left;
+			days = (int) floor(seconds_left / 60 / 60 / 24);
+			hours = (int) fmod(seconds_left / 60 / 60, 24);
+			minutes = (int) fmod(seconds_left / 60, 60);
+			seconds = (int) fmod(seconds_left, 60);
+			//qDebug() << days << " days, " << hours << ":" << minutes << ":" << seconds;
+			pct = ( (maxVal - keysLeft) / maxVal) * 100.0;
+			//qDebug() << " pct: << " << pct << " ( maxVal (" << (double)maxVal << ") - keysLeft(" << (double)keysLeft << ") / maxVal(" << (double)maxVal << ") ) * 100";	
+		}
+
+		if(pps > 0 || totalHashFound > hashFoundPrev) {
+			hashFoundPrev = totalHashFound;
+			emit updateBruteLabels(pps, tr("%1 days, %2:%3:%4").arg(days).arg(tmp.sprintf("%02d",hours)).arg(tmp.sprintf("%02d",minutes)).arg(tmp.sprintf("%02d",seconds)), totalHashFound);
+			if(pps > 0)
+				emit updateBruteStatus(3, pct, tr("Currently bruteforcing with %1 available nodes (%2 Mil/sec).").arg(successfulServerList.count()).arg(tmp.sprintf("%.6f",(double)pps)));
+		}
 		msleep(500);
 	}
 

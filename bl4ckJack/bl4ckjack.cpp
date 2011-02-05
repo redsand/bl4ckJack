@@ -197,8 +197,8 @@ bl4ckJack::~bl4ckJack()
 
 	connect(bruteThread, SIGNAL(updateBruteStatus(int, int, QString)),
             this, SLOT(updateBruteStatus(int, int, QString)), Qt::QueuedConnection);
-	connect(bruteThread, SIGNAL(updateBruteLabels(double, qint64, qint64)),
-            this, SLOT(updateBruteLabels(double, qint64, qint64)), Qt::QueuedConnection);
+	connect(bruteThread, SIGNAL(updateBruteLabels(double, QString, qint64)),
+            this, SLOT(updateBruteLabels(double, QString, qint64)), Qt::QueuedConnection);
 	connect(bruteThread, SIGNAL(updateBrutePassword(QString, QString)),
             this, SLOT(updateBrutePassword(QString, QString)), Qt::QueuedConnection);
 
@@ -290,6 +290,30 @@ bl4ckJack::~bl4ckJack()
 
 	delete bruteThread;
 	bruteThread = new bl4ckJackBrute(this);
+
+	
+	QString q;
+	q.sprintf("%.6f", 0.0);
+	this->ui.lblPPS->setText(tr("%1 Mil/sec").arg(q));
+	this->ui.lblTotalHashes->setText(tr("0"));
+	this->ui.lblRecoveredPasswords->setText(tr("0"));
+	this->ui.lblCompletionTime->setText(tr(""));
+	this->ui.progressBar->setValue(0);
+
+	// prompt to save before clear
+	if(this->ui.tblPassword->rowCount() > 0) {
+		QMessageBox::StandardButton reply = QMessageBox::question(this, tr("bl4ckJack"),
+										 "Would you like to save the existing cracked hashes before continuing?",
+										 QMessageBox::Yes | QMessageBox::No);
+		if (reply == QMessageBox::Yes) {
+			PasswordSaveFileTable();
+		}
+	}
+	
+	for(int i=ui.tblPassword->rowCount()-1; i >= 0; i--) {
+		qDebug() << "removing row: " << i;
+		ui.tblPassword->removeRow(i);
+	}
 
 	trayIcon->setToolTip("bl4ckJack "VERSION "\r\nStopped.\r\n");
 	this->statusBar()->showMessage("Stopped.");
@@ -598,11 +622,14 @@ void bl4ckJack::updateUIFileAdd(QString a, QString b, QString c, float status) {
 
  }
 
-void bl4ckJack::updateBruteLabels(double milpw, qint64 ttl, qint64 crackedPasswords) {
+void bl4ckJack::updateBruteLabels(double milpw, QString ttl, qint64 crackedPasswords) {
 	
 	QString q, q2, q3;
-	q.sprintf("%.2f", milpw);
-	this->ui.lblPPS->setText(tr("%1 Mil/sec").arg(q));
+	if(milpw > 0) {
+		q.sprintf("%.6f", milpw);
+		this->ui.lblPPS->setText(tr("%1 Mil/sec").arg(q));
+		trayIcon->setToolTip(tr("bl4ckJack "VERSION "\r\nBruteforcing @ %1 Mil/sec\r\n").arg(q));
+	}
 
 	if(crackedPasswords > 0) {
 		q2.sprintf("%ld",this->tblHashView->getList().count() - crackedPasswords);
@@ -615,6 +642,7 @@ void bl4ckJack::updateBruteLabels(double milpw, qint64 ttl, qint64 crackedPasswo
 			this->stop();
 		}
 	}
+	this->ui.lblCompletionTime->setText(ttl);
 }
 
 void bl4ckJack::updateBrutePassword(QString hash, QString password) {
@@ -628,8 +656,8 @@ void bl4ckJack::updateBrutePassword(QString hash, QString password) {
 	this->ui.tblPassword->setItem(this->ui.tblPassword->rowCount() - 1, 1, item2);
 	this->ui.tblPassword->setItem(this->ui.tblPassword->rowCount() - 1, 2, item3);
 
-	// module
-	this->bruteThread->getModule();
+	this->ui.tblPassword->resizeColumnsToContents();
+
 }
  
  /******************************************************/

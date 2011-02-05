@@ -65,7 +65,8 @@ public:
 
 signals:
 	void updateBruteStatus(int, int, QString);
-	void updateBruteLabels(double, qint64, qint64);
+	void updateBruteLabels(double, QString, qint64);
+	void updateBruteDateTime(QString);
 	void updateBrutePassword(QString, QString);
 
 public slots:
