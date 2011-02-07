@@ -19,6 +19,7 @@
 #ifndef GPU_DEVICE_H
 #define GPU_DEVICE_H
 
+#include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
 template <class T>

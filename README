@@ -6,3 +6,9 @@
 				
 
 	
+
+Build requirements:
+	Qt	- http://qt.nokia.com
+	CUDA	- http://developer.nvidia.com/object/cuda_3_2_downloads.html
+	OpenSSL	- http://www.openssl.org
+	ZLib	- http://www.zlib.net

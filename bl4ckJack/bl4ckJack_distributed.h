@@ -24,12 +24,15 @@ public:
 
 	bl4ckJackBrute(QObject *parent) : QThread(parent) {
 		go=true;
+		stop=false;
 		this->listenHost = "127.0.0.1";
 		this->distributedServer = NULL;
 	}
 	
 	~bl4ckJackBrute() {
-		
+		stop=true;
+		go = true;
+		msleep(5000);
 		if(this->distributedServer) {
 			this->distributedServer->terminate();
 			delete this->distributedServer;
@@ -74,6 +77,7 @@ public slots:
 
 private:
 	bool go;
+	bool stop;
 	bool listenOnly;
 	QString listenHost;
 	DistributedServer *distributedServer;

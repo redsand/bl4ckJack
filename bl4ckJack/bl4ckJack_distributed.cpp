@@ -13,6 +13,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <Qt>
+#include <QString>
+#include <QDebug>
 
 #include <RCF/Idl.hpp>
 #include <RCF/IpServerTransport.hpp>
@@ -59,7 +61,7 @@ void bl4ckJackBrute::doWork() {
 	// each peice: (max size / ((serverCount) * tokensPerServer));
 	// maxVal = charsetLen^ keyLen (16) + keyLen(15) etc
 	keyLen = settings->value("config/gpu_max_password_size").toInt();
-	for(int i=keyLen; i > 0; i--) {
+	for(int i=1; i <= keyLen; i++) {
 		maxVal += ((long double) pow((long double)settings->value("config/charset").toString().length(), i));
 	}
 
@@ -171,13 +173,25 @@ void bl4ckJackBrute::doWork() {
 
 	}
 
-	long double pertoken = floor(maxVal / (successfulServerList.count() * settings->value("config/dc_minimum_tokens",10).toInt()));
+	long double pertoken = ceil(maxVal / (successfulServerList.count() * settings->value("config/dc_minimum_tokens",10).toInt()));
 
 	double tokencount = floor(maxVal / pertoken);
 	double tokeniter = 0;
 	
-	emit updateBruteStatus(3, 1, tr("Distributing %1 hashes for processing...").arg(bJMain->tblHashView->getList().count()));
 	
+	// if 0 available hosts, notify and stop bruteforce
+	if(successfulServerList.count() > 0) {
+		emit updateBruteStatus(3, 1, tr("Distributing %1 hashes to %2 hosts for processing...").arg(bJMain->tblHashView->getList().count()).arg(successfulServerList.count()));
+	} else {
+		emit updateBruteStatus(1, 1, tr("Failed to identify hosts for the hash distribution process."));
+		return;
+	}
+
+	if(bJMain->tblHashView->getList().count() == 0) {
+		emit updateBruteStatus(1, 1, tr("Failed to identify hsashes for the remote distribution process."));
+		return;
+	}
+
 	for(i = 0; i < successfulServerList.count(); i++) {
 		
 		int j=0;
@@ -232,10 +246,15 @@ void bl4ckJackBrute::doWork() {
 	// at 95% completion rate, w're expected to send the requesting host its next keyspace
 	//		upon success crack, thread should add password to gui
 
+	// sleep and let our stuff catch up
+	/*
+	emit updateBruteStatus(3, 0, tr("Bruteforcing waiting 5 seconds for nodes to catch up."));
+	this->msleep(5000);
+	*/
 	
 	qint64 totalHashFound = 0;
 
-	int retry=0;
+	int retry=1;
 
 	qint64 hashFoundPrev = 0;
 	double pct = 0.0;
@@ -244,8 +263,9 @@ void bl4ckJackBrute::doWork() {
 	int hours = 0;
 	int minutes = 0;
 	int seconds = 0;
+	long double keysLeft = 1;
 
-	while(true) {
+	while(!this->stop && keysLeft > 0) {
 		while(this->go == false) {
 			qDebug() << "paused.";
 			emit updateBruteStatus(3, pct, tr("Bruteforcing paused."));
@@ -257,7 +277,7 @@ void bl4ckJackBrute::doWork() {
 
 		BruteForceMatch match;
 		for(i=0; i < serverConList.count(); i++) {
-			while(true) {
+			while(!this->stop) {
 				try {
 					serverConList[i]->getMatch(match);
 					if(match.hash.empty() || match.password.empty())
@@ -276,8 +296,8 @@ void bl4ckJackBrute::doWork() {
 
 		QString tmp;
 		long double pps = 0;
-		long double keysLeft = 0;
 		qint64 hashFoundPrev = 0;
+		keysLeft = 0;
 		for(i=0; i < serverConList.count(); i++) {
 			BruteForceStats *s = new BruteForceStats;
 			try {
@@ -291,14 +311,15 @@ void bl4ckJackBrute::doWork() {
 				continue;
 			}
 
+			//if(tokeniter*pertoken > maxVal) break;
 			// need to get total keyspace left from hosts && from keyspaceList
+			
 			if(retry++ % 10 == 0) {
 				for(i = 0; i < successfulServerList.count(); i++) {
 			
 					try {
 						if(serverConList[i]->submitKeyspace(tokeniter * pertoken, ((tokeniter + 1) * pertoken) - 1)) {
 							tokeniter++;
-							keysLeft +=  (((tokeniter + 1) * pertoken) - 1) - (tokeniter * pertoken);
 							//emit updateBruteStatus(3, pct, tr("Distributing tokens #%1 to remote host %2.").arg(tokeniter).arg(successfulServerList[i]));
 							//usleep(1000);
 						}
@@ -307,12 +328,13 @@ void bl4ckJackBrute::doWork() {
 						continue;
 					}
 				}
-				retry = 0;
+				retry = 1;
 			}
 
 		}
 
-		keysLeft += (pertoken * (tokencount - tokeniter));
+		qDebug() << "Adding " << (double)keysLeft << " with " << (double)(pertoken * ((tokencount - tokeniter)+1));
+		keysLeft += (pertoken * ((tokencount - tokeniter)+1));
 		// pps (a second)
 		// keysLeft (total keys)
 
@@ -324,7 +346,9 @@ void bl4ckJackBrute::doWork() {
 			minutes = (int) fmod(seconds_left / 60, 60);
 			seconds = (int) fmod(seconds_left, 60);
 			//qDebug() << days << " days, " << hours << ":" << minutes << ":" << seconds;
-			pct = ( (maxVal - keysLeft) / maxVal) * 100.0;
+			pct = ((maxVal - keysLeft) / maxVal) * 100.0;
+			if(pct < 0)
+				pct = 0;
 			//qDebug() << " pct: << " << pct << " ( maxVal (" << (double)maxVal << ") - keysLeft(" << (double)keysLeft << ") / maxVal(" << (double)maxVal << ") ) * 100";	
 		}
 
@@ -334,7 +358,7 @@ void bl4ckJackBrute::doWork() {
 			if(pps > 0)
 				emit updateBruteStatus(3, pct, tr("Currently bruteforcing with %1 available nodes (%2 Mil/sec).").arg(successfulServerList.count()).arg(tmp.sprintf("%.6f",(double)pps)));
 		}
-		msleep(500);
+		msleep(1000);
 	}
 
 	for(i=0; i < serverConList.count(); i++) {
@@ -342,5 +366,9 @@ void bl4ckJackBrute::doWork() {
 	}
 
 	serverConList.clear();
+
+	if(keysLeft <= 0) {
+		emit updateBruteStatus(3, pct, tr("Bruteforcing  %1 available nodes."));
+	}
 	distributedServer->terminate();
 }

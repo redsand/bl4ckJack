@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'bl4ckJack_tableview.h'
 **
-** Created: Mon Dec 27 12:53:00 2010
+** Created: Sun Feb 6 13:56:05 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.1)
 **
 ** WARNING! All changes made in this file will be lost!

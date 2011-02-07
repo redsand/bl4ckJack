@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'bl4ckJack.h'
 **
-** Created: Wed Jan 5 23:30:11 2011
+** Created: Sun Feb 6 13:57:08 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -34,19 +34,19 @@ static const uint qt_meta_data_bl4ckJack[] = {
       15,   11,   10,   10, 0x0a,
       65,   62,   10,   10, 0x0a,
      100,   62,   10,   10, 0x0a,
-     142,  140,   10,   10, 0x0a,
-     186,  179,   10,   10, 0x08,
-     235,   10,   10,   10, 0x08,
-     252,   10,   10,   10, 0x08,
-     269,   10,   10,   10, 0x08,
-     277,   10,   10,   10, 0x08,
-     284,   10,   10,   10, 0x08,
-     292,   10,   10,   10, 0x08,
-     313,   10,   10,   10, 0x08,
-     334,   10,   10,   10, 0x08,
-     356,   10,   10,   10, 0x08,
-     373,   10,   10,   10, 0x08,
-     402,   10,   10,   10, 0x08,
+     143,  141,   10,   10, 0x0a,
+     187,  180,   10,   10, 0x08,
+     236,   10,   10,   10, 0x08,
+     253,   10,   10,   10, 0x08,
+     270,   10,   10,   10, 0x08,
+     278,   10,   10,   10, 0x08,
+     285,   10,   10,   10, 0x08,
+     293,   10,   10,   10, 0x08,
+     314,   10,   10,   10, 0x08,
+     335,   10,   10,   10, 0x08,
+     357,   10,   10,   10, 0x08,
+     374,   10,   10,   10, 0x08,
+     403,   10,   10,   10, 0x08,
 
        0        // eod
 };
@@ -55,7 +55,7 @@ static const char qt_meta_stringdata_bl4ckJack[] = {
     "bl4ckJack\0\0,,,\0"
     "updateUIFileAdd(QString,QString,QString,float)\0"
     ",,\0updateBruteStatus(int,int,QString)\0"
-    "updateBruteLabels(double,qint64,qint64)\0"
+    "updateBruteLabels(double,QString,qint64)\0"
     ",\0updateBrutePassword(QString,QString)\0"
     "reason\0iconActivated(QSystemTrayIcon::ActivationReason)\0"
     "messageClicked()\0showProperties()\0"
@@ -96,7 +96,7 @@ int bl4ckJack::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         switch (_id) {
         case 0: updateUIFileAdd((*reinterpret_cast< QString(*)>(_a[1])),(*reinterpret_cast< QString(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3])),(*reinterpret_cast< float(*)>(_a[4]))); break;
         case 1: updateBruteStatus((*reinterpret_cast< int(*)>(_a[1])),(*reinterpret_cast< int(*)>(_a[2])),(*reinterpret_cast< QString(*)>(_a[3]))); break;
-        case 2: updateBruteLabels((*reinterpret_cast< double(*)>(_a[1])),(*reinterpret_cast< qint64(*)>(_a[2])),(*reinterpret_cast< qint64(*)>(_a[3]))); break;
+        case 2: updateBruteLabels((*reinterpret_cast< double(*)>(_a[1])),(*reinterpret_cast< QString(*)>(_a[2])),(*reinterpret_cast< qint64(*)>(_a[3]))); break;
         case 3: updateBrutePassword((*reinterpret_cast< QString(*)>(_a[1])),(*reinterpret_cast< QString(*)>(_a[2]))); break;
         case 4: iconActivated((*reinterpret_cast< QSystemTrayIcon::ActivationReason(*)>(_a[1]))); break;
         case 5: messageClicked(); break;

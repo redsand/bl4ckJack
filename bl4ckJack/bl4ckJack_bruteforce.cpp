@@ -6,6 +6,8 @@
 #include "bl4ckJack.h"
 #include "bl4ckJack_timer.h"
 
+#include "cuda_gpu.h"
+
 #include <algorithm>
 #include <iostream>
 #include <string>
@@ -17,6 +19,7 @@
 
 static char *
 bintohex(unsigned int len, char *bindata);
+__inline BOOL hyperThreadingOn();
 
 void BruteForce::addBTree(void *hash, size_t s) {
 	this->btree.insert(hash, s);
@@ -51,13 +54,74 @@ void *BruteForce::NewThread() {
 	//		- start host key cracker
 	//		- start gpu key cracker
 	//		- get updates and send back
-
-	//this->keyspaceList->pop_back();
 	
+
+	
+	std::string charset = settings->value("config/current_charset","empty charset").toString().toStdString();
+	this->base = new BaseConversion(charset);
+
+	// lets check out our cuda availability
+	GPU_Dev gpu;
+	int gpu_count = gpu.getDevCount();
+
+	// need to create a thread per cpu and pass arg to thread as offset
+
+	this->hyperThreading = hyperThreadingOn();
+
+	// per CPU single cpu then:
+	// http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
 #ifdef WIN32
-	hThreadCPU = CreateThread(NULL, 0, BruteForce::NewThreadCPU, this, 0, &threadIdCPU);
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo( &sysinfo );
+	this->cpuCount = sysinfo.dwNumberOfProcessors;
+
+	
+   if(!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
+   {
+      DWORD dwError = GetLastError();
+   } 
+
 #else
-	pthread_create(&threadIdCPU, BruteForce::NewThreadCPU, this);
+	this->cpuCount = sysconf( _SC_NPROCESSORS_ONLN );
+#endif
+
+	// for some reason this is 2x as fast when we run under 1 thread:
+	this->cpuCount = 1;
+
+	int cpu_stop = 0;
+	//this->cpuCount *= 4;
+	if(this->hyperThreading) {
+		if( (this->cpuCount/2) - 1 <= 0) {
+			cpu_stop = this->cpuCount;
+		} else {
+			cpu_stop = (this->cpuCount/2) - 1;
+			this->cpuCount = cpu_stop;
+		}
+		for(int cpu_iter=0; cpu_iter < cpu_stop; cpu_iter++) {
+			qDebug() << "Initiating " << cpu_iter << " CPU threads";
+			cpuCurrent.push_back(cpu_iter);
+#ifdef WIN32
+		hThreadCPU = CreateThread(NULL, 0, BruteForce::NewThreadCPU, this, 0, &threadIdCPU);
+#else
+		pthread_create(&threadIdCPU, BruteForce::NewThreadCPU, this);
+#endif
+
+		}
+	} else {
+		for(int cpu_iter=0; cpu_iter < (this->cpuCount); cpu_iter++) {
+			qDebug() << "Initiating " << cpu_iter << " CPU threads";
+			cpuCurrent.push_back(cpu_iter);
+		}
+	}
+
+#if defined(WIN32) || defined(WIN64)
+	/*
+	HANDLE hProcessThread = OpenProcess(PROCESS_ALL_ACCESS, 0, GetCurrentProcessId());
+	SetProcessAffinityMask(hProcessThread, this->cpuCount);
+	CloseHandle(hProcessThread);
+	*/
+	
+#else
 #endif
 
 #ifdef WIN32
@@ -66,58 +130,53 @@ void *BruteForce::NewThread() {
 	pthread_create(&threadIdGPU, BruteForce::NewThreadGPU, this);
 #endif
 
-	while(true) {
-
-#ifdef WIN32
-		Sleep(1500);
-#else
-		usleep(1500);
-#endif
+	while(!stopRunning) {
 
 		int keyspaceIter = 0;
+		std::list<std::pair<long double, long double> >::iterator iter;
+		//for(keyspaceIter = 0; keyspaceIter < keyspaceList->size(); keyspaceIter++) {
+		//for(iter = keyspaceList.begin(); iter != keyspaceList.end(); iter++) {
+		iter = keyspaceList.begin();
+		long double current_iter = 0;
+		int pct=0;
+		while(iter != keyspaceList.end()) {
+			std::pair<long double, long double> pair = *iter;
 
-		for(keyspaceIter = 0; keyspaceIter < keyspaceList->size(); keyspaceIter++) {
-			
-			int pct = settings->value("config/dc_cpu_keyspace_pct", 10).toInt();
-			if(pct <= 0) pct = 5;
+			if(current_iter > 0)
+				pair.first = current_iter; // in case our previous token overlapped
 
-			long double space = keyspaceList->at(keyspaceIter).second - keyspaceList->at(keyspaceIter).first;
+			// if no gpu then set this to 100
+			if(gpu_count <= 0) {
+				pct = 100;
+			} else {
+				pct = settings->value("config/dc_cpu_keyspace_pct", 10).toInt();
+				if(pct <= 0) pct = 5;
+			}
+
+			long double space = pair.second - pair.first;
 			long double cpu_amnt = (long double) (space * (float)((float)pct / 100));
 			long double gpu_amnt = 100 - cpu_amnt;
 
 			// check and make sure we have gpus to use, otherwise we're going to rely strictly on CPU
-			
-			// per CPU single cpu then:
-			// http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
-			DWORD cpuCount = 0;
-#ifdef WIN32
-			SYSTEM_INFO sysinfo;
-			GetSystemInfo( &sysinfo );
 
-			cpuCount = sysinfo.dwNumberOfProcessors;
-#else
-			cpuCount = sysconf( _SC_NPROCESSORS_ONLN );
-
-#endif
-
-			long double cur=keyspaceList->at(keyspaceIter).second - keyspaceList->at(keyspaceIter).first;
+			long double cur = pair.second - pair.first;
 
 			long double final_second = 0;
 
 			// re-check and verify our list of keyspaces is being calculated correctly
 			// keep getting 0 through 1st set of second
-			std::pair< long double, long double> pair;
+			
 			int breakIter=0;
 			while(cur > 0) {
 				long double sub_amnt = (long double) floor((cpu_amnt / cpuCount));
+				std::pair< long double, long double> pair2;
 				for(int mine = 0; mine < cpuCount; mine++) {
-					pair.first = ((long double)keyspaceList->at(keyspaceIter).first + ((mine + breakIter) * sub_amnt));
-					pair.second = ((long double) keyspaceList->at(keyspaceIter).first + ((mine + breakIter) * sub_amnt) + sub_amnt);
- 					CPUkeyspaceList.push_back(pair);
-					cur -= (pair.second - pair.first);
-					final_second = pair.second;
-					
+					pair2.first = ((long double)pair.first + ((mine + breakIter) * sub_amnt));
+					pair2.second = ((long double) pair.first + ((mine + breakIter) * sub_amnt) + sub_amnt + 1);
+ 					CPUkeyspaceList.push_back(pair2);
+					cur -= (pair2.second - pair2.first);
 				}
+				final_second = pair2.second;
 
 				// per GPU
 				// if gpu available {
@@ -135,14 +194,24 @@ void *BruteForce::NewThread() {
 				breakIter++;
 			}
 
-			keyspaceList->at(keyspaceIter).first = final_second + 1;
+			current_iter = final_second + 1;
 
-			qDebug() << "First " << (double)keyspaceList->at(keyspaceIter).first << " < " << (double)keyspaceList->at(keyspaceIter).second;
-			if(keyspaceList->at(keyspaceIter).first < keyspaceList->at(keyspaceIter).second) {
-				keyspaceIter--;
+			//qDebug() << "First " << (double)keyspaceList->at(keyspaceIter).first << " < " << (double)keyspaceList->at(keyspaceIter).second;
+			if(current_iter >= pair.second) {
+				iter++;
+				keyspaceIter++;
 			}
+
+			qDebug() << "CPUKeyspaceList size " << CPUkeyspaceList.size();
 		}
-		keyspaceList->clear();
+		keyspaceList.clear();
+
+#ifdef WIN32
+		Sleep(1500);
+#else
+		usleep(1500);
+#endif
+
 	}
 
 #ifdef WIN32
@@ -162,27 +231,54 @@ unsigned long _stdcall BruteForce::NewThreadCPU(void *param) {
 void *BruteForce::NewThreadCPU(void *param) {
 #endif
 	BruteForce *self = (BruteForce*) param;
-	return self->NewThreadCPU();
+	
+#if defined(WIN32) || defined(WIN64)
+	return self->NewThreadCPU(self, GetCurrentThreadId());
+#else
+	return self->NewThreadCPU(self, pthread_self());
+#endif
 }
 
 
 // THIS FUNCTION SHOULD BE LAUNCHED PER CPU!
 #ifdef WIN32
-unsigned long BruteForce::NewThreadCPU() {
+unsigned long BruteForce::NewThreadCPU(void *param, int thread_id) {
 #else
-void *BruteForce::NewThreadCPU(char *charset) {
+void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 #endif
 
 	Timer t;
 	int hashFound = 0;
+
+	// get our thread/cpu #
+	BruteForce *self = (BruteForce*) param;
+	self->cpuThreads.push_back(thread_id);
+
+	// sleep 1 second so all threads catch up
+#if defined(WIN32) || defined(WIN64)
+	Sleep(1000);
+#else
+	usleep(1000);
+#endif
+
+	int my_cpu = -1;
+	for(int cpu_iter=0; cpu_iter < this->cpuCount; cpu_iter++) {
+		if(this->cpuThreads[cpu_iter] == thread_id) {
+			my_cpu = cpu_iter;
+			break;
+		}
+	}
+
+	if(my_cpu < 0) {
+		qDebug() << "cpu assignment failed, wtf?";
+		my_cpu = 0;
+	}
+
 	unsigned char bruteStr[MAX_BRUTE_CHARS+1];
 	unsigned char results[MAX_BRUTE_CHARS+1];
 
 	memset(bruteStr, 0, MAX_BRUTE_CHARS + 1);
 	memset(results, 0, MAX_BRUTE_CHARS + 1);
-
-	std::string charset = settings->value("config/current_charset","empty charset").toString().toStdString();
-	BaseConversion *base = new BaseConversion(charset);
 
 	// this thread is responsible for bruteforcing CPU
 
@@ -193,16 +289,13 @@ void *BruteForce::NewThreadCPU(char *charset) {
 	this->stats.currentOpenTokens = 0;
 
 	while (!stopRunning) {
-		
-#ifdef WIN32
-		Sleep(1500);
-#else
-		usleep(1500);
-#endif
-		
+	
 		long double currentStartToken=0, currentStopToken=0;
-		//for(CPUkeyspaceIter = 0; CPUkeyspaceIter < CPUkeyspaceList.size(), !stopRunning; CPUkeyspaceIter++) {
-		while(!CPUkeyspaceList.empty()) {
+		std::list<std::pair<long double, long double>>::iterator iter;
+		std::pair<long double, long double> token;
+
+		//for(CPUkeyspaceIter = 0; CPUkeyspaceIter < CPUkeyspaceList->size(), !stopRunning; CPUkeyspaceIter++) {
+		while(!stopRunning && !CPUkeyspaceList.empty()) {
 			// load our charset and keyspace and begin bruteing
 
 			currentStartToken=0;
@@ -220,12 +313,24 @@ void *BruteForce::NewThreadCPU(char *charset) {
 			} else {
 				Timer t;
 				qint64 startTime = t.StartTiming(), stopTime = 0;
-				currentStartToken = CPUkeyspaceList.begin()->first;
+				//qDebug() << "START CPUKeyspaceList size " << CPUkeyspaceList.size();
+				if(CPUkeyspaceList.size() > my_cpu) {	
+					iter = CPUkeyspaceList.begin();
+					for(int my_temp=0; my_temp < my_cpu; my_temp++)
+						iter++;
+					// ^^^^ instead of below cuz it wont let me
+					//iter += my_cpu;
+					token = *iter;
+				} else {
+					// we're finish
+					break;
+				}
+				currentStartToken = token.first;
 				size_t retLen=0;
 				BOOL setKey = TRUE;
-				//for(long double i = CPUkeyspaceList.begin()->first; i < CPUkeyspaceList.begin()->second, !stopRunning; i++) {
-				while(CPUkeyspaceList.begin()->first <= CPUkeyspaceList.begin()->second) {
-					base->ToBase(CPUkeyspaceList.begin()->first, (char *)bruteStr, MAX_BRUTE_CHARS);
+	
+				while(!stopRunning && token.first <= token.second) {
+					this->base->ToBase(token.first, (char *)bruteStr, MAX_BRUTE_CHARS);
 					bl4ckJackModules[j]->pfbl4ckJackGenerate((unsigned char *)results, &retLen, (unsigned char *)bruteStr, strlen((const char *)bruteStr));
 		
 					// gen our hash and check for existance in hash list
@@ -241,46 +346,73 @@ void *BruteForce::NewThreadCPU(char *charset) {
 						// if this is our last one, lets stop
 					}
 					
-
-					if(fmod(CPUkeyspaceList.begin()->first, 40000) == 0) {
+					//if(fmod(token->first, 60000) == 0) {
+					{
 						//qDebug() << "checking time elapse";
-						if(t.ElapsedTiming(startTime, t.StopTiming()) >= 500) {
+						if(t.ElapsedTiming(startTime, t.StopTiming()) >= 1000) {
 							
 							// warn that we're in need of more keys
 							if(setKey) {
-								if(CPUkeyspaceList.size() < 3) {
-									if( (((CPUkeyspaceList.begin()->second - CPUkeyspaceList.begin()->first) * 0.80 /*80%*/) ) < CPUkeyspaceList.begin()->first) {
+								if(CPUkeyspaceList.size() == 1) {
+									if( (((token.second - token.first) * 0.80 ) ) < token.first) {
    										this->getKeyspace = true;
 										setKey = FALSE;
 									}
 								}
 							} else {	
-								if(CPUkeyspaceList.size() < 3) {
+								if(CPUkeyspaceList.size() == 1) {
 									setKey = TRUE;
 								}
 							}
 
 							//qDebug() << "time elapse success " << startTime << " and " << t.StopTiming() << " is " << t.ElapsedTiming(startTime, t.StopTiming());
 							this->statsMutex.lock();
-							  
+							cpuCurrent[my_cpu] = token.first;
 							this->stats.totalHashFound += hashFound;
-							hashFound = 0;
-
-							currentStopToken = CPUkeyspaceList.begin()->first;
-							this->stats.milHashSec += (((currentStopToken - currentStartToken)*2) / 1000000 /*million*/);
-							currentStartToken = CPUkeyspaceList.begin()->first;
+							this->stats.milHashSec += (((token.first - currentStartToken)) / 1000000);
 							this->statsMutex.unlock();
+							hashFound = 0;
+							currentStopToken = token.first;
+							currentStartToken = token.first;
 							startTime = t.StartTiming();
 						}
 					} 
-					CPUkeyspaceList.begin()->first++;
+					
+					/*
+					if(t.ElapsedTiming(startTime, t.StopTiming()) >= 1000) {
+							// warn that we're in need of more keys
+						if(setKey) {
+							if(CPUkeyspaceList.size() < 2) {
+								if( (((token.second - token.first) * 0.80 ) ) < token.first) {
+									this->getKeyspace = true;
+									setKey = FALSE;
+								}
+							}
+						} else {
+							if(CPUkeyspaceList.size() < 2) {
+								setKey = TRUE;
+							}
+						}
+						//qDebug() << "time elapse success " << startTime << " and " << t.StopTiming() << " is " << t.ElapsedTiming(startTime, t.StopTiming());
+						this->statsMutex.lock();
+						this->stats.totalHashFound += hashFound;
+						hashFound = 0;
+						currentStopToken =token.first;
+						this->stats.milHashSec += (((currentStopToken - currentStartToken)) / 1000000 );
+						currentStartToken = token.first;
+						this->statsMutex.unlock();
+						startTime = t.StartTiming();
+					}
+					*/
+					token.first++;
 				}
 			}
-			CPUkeyspaceList.erase(CPUkeyspaceList.begin());
+			CPUkeyspaceList.remove(token); //pop_front();
+			qDebug() << "NEW CPUKeyspaceList size " << CPUkeyspaceList.size();
 		}
 
 		this->getKeyspace = true;
-
+		if(stopRunning) break;
 #ifdef WIN32
 		Sleep(1500);
 #else
@@ -307,13 +439,17 @@ unsigned long _stdcall BruteForce::NewThreadGPU(void *param) {
 void *BruteForce::NewThreadGPU(void *param) {
 #endif
 	BruteForce *self = (BruteForce*) param;
-	return self->NewThreadGPU();
+#if defined(WIN32) || defined(WIN64)
+	return self->NewThreadGPU(self, GetCurrentThreadId());
+#else
+	return self->NewThreadGPU(self, pthread_self());
+#endif
 }
 
 #ifdef WIN32
-unsigned long BruteForce::NewThreadGPU() {
+unsigned long BruteForce::NewThreadGPU(void *param, int thread_id) {
 #else
-void *BruteForce::NewThreadGPUGPU() {
+void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 #endif
 
 	
@@ -327,11 +463,7 @@ void *BruteForce::NewThreadGPUGPU() {
 		
 		while(!stopRunning && !GPUkeyspaceList.empty()) {
 			// load our charset and keyspace and begin bruteing
-
-			GPUkeyspaceList.at(0).first;
-			GPUkeyspaceList.at(0).second;
-
-			//GPUkeyspaceList.pop_back();
+			
 			Sleep(1000);
 		}
 
@@ -355,10 +487,9 @@ void *BruteForce::NewThreadGPUGPU() {
 
 }
 
-void BruteForce::start(std::vector< std::pair< long double, long double> > *keyspaceList) {
+void BruteForce::start() {
 
 	
-	this->keyspaceList = keyspaceList;
 	// qDebug()
 
 #ifdef WIN32
@@ -441,3 +572,27 @@ bintohex(unsigned int len, char *bindata)
     *hexdata = '\0';
     return starthex;
 }
+
+__inline BOOL hyperThreadingOn()
+{
+    DWORD       rEbx, rEdx;
+    __asm {
+         push   eax         // save registers used
+         push   ebx
+         push   ecx
+         push   edx
+         xor    eax,eax     // cpuid(1)
+         add    al, 0x01
+        _emit   0x0F
+        _emit   0xA2
+         mov    rEdx, edx   // Features Flags, bit 28 indicates if HTT (Hyper-Thread Technology) is
+                            //  available, but not if it is on; if on, Count of logical processors > 1.
+         mov    rEbx, ebx   // Bits 23-16: Count of logical processors.
+                            //             Valid only if Hyper-Threading Technology flag is set.
+         pop    edx         // restore registers used
+         pop    ecx
+         pop    ebx
+         pop    eax
+    }
+    return (rEdx & (1<<28)) && (((rEbx & 0x00FF0000) >> 16) > 1);
+} 

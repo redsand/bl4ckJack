@@ -2,7 +2,7 @@
 #define BL4CKJACK_H
 
 #ifndef VERSION
-#define VERSION "0.37-2"
+#define VERSION "0.42-3"
 #endif
 
 #define DEFAULT_PORT		40201

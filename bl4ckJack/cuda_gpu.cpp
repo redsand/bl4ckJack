@@ -36,6 +36,8 @@ Multi GPU ...
 #define snprintf sprintf_s
 #endif
 
+#include <cuda_runtime.h>
+
 /* Internal/Private */
 inline bool GPU_Dev::isCUDAError(void)
 {
@@ -162,8 +164,7 @@ int GPU_Dev::getDevInfoStr(int CUDA_device_ID, char *str, int len)
 	}
 
 	/* There are X devices supporting CUDA */
-	snprintf(str, len,"Cuda device ID:%d, Device name:%s, supporting CUDA:%d.%d, \nmultiProcessorCount:%d, clockRate:%01.02f MHz, TotalMem:%01.02f MB\n",
-		this->devInf.Devs[dev].CUDA_device_ID,
+	snprintf(str, len,"%s (v%d.%d)\n\tProcessors: %d, ClockRate: %01.02f MHz, TotalMem:%01.02f MB\n",
 		this->devInf.Devs[dev].deviceProp.name, 
 		this->devInf.Devs[dev].deviceProp.major,
 		this->devInf.Devs[dev].deviceProp.minor,

@@ -484,6 +484,10 @@ ModulesPage	*modPage = NULL;
 		moduleList->insertRow(row);
 		moduleList->setItem(row, 0, itm);
 		moduleList->setEnabled(false);
+
+		// if none are available, lets reset the CPU percentage to 100%
+		settings->setValue("config/dc_cpu_keyspace_pct", 100); 		
+		dcPage->txtCPUTokenPercentage->setText(settings->value("config/dc_cpu_keyspace_pct").toString());
 	 }
 
 	 moduleList->resizeColumnsToContents();

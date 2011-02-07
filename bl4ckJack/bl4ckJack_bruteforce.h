@@ -3,6 +3,8 @@
 
 #include <Qt>
 #include <QMutex>
+#include <QDebug>
+#include <QString>
 
 #include "bl4ckJack_btree.h"
 #include "bl4ckJack_base.h"
@@ -65,7 +67,6 @@ public:
 
 	BruteForce() {
 
-		
 		memset(&hThread, 0, sizeof(hThread));
 		memset(&hThreadCPU, 0, sizeof(hThreadCPU));
 		memset(&hThreadGPU, 0, sizeof(hThreadGPU));
@@ -74,14 +75,24 @@ public:
 		this->EnabledModule = "Default Module";
 		this->base = NULL;
 		this->stats.milHashSec = this->stats.totalHashFound = 0;
+		
 	}
 
 	~BruteForce() {
 		stop();
+#if defined(WIN32) || defined(WIN64)
+		Sleep(2500);
+#else
+		usleep(2500);
+#endif
+		this->keyspaceList.clear();
+		this->CPUkeyspaceList.clear();
+		this->GPUkeyspaceList.clear();
+		
 		if(this->base) {
 			delete this->base;
 			this->base = NULL;
-			/*
+
 			if(hThread) {
 #ifdef WIN32
 				TerminateThread(hThread, 0);
@@ -103,36 +114,81 @@ public:
 				pthread_kill(hThreadGPU, 0);
 #endif
 			}
-			*/
+		
 		}
 
 		// clear our btree
 		this->btree.destroy();
+
 	}
 	
+	/*
 	BruteForceStats getStats(BruteForceStats &s) {
 
 		this->statsMutex.lock();
 		s.milHashSec = this->stats.milHashSec;
 		s.totalHashFound = this->stats.totalHashFound;
-		this->stats.totalHashFound = 0;
-		this->stats.milHashSec = 0;
+		
 		// calc our current open tokens:
 		//
 		this->stats.currentOpenTokens = 0;
-		for(int i = 0; i < CPUkeyspaceList.size(); i++) {
-			this->stats.currentOpenTokens += (CPUkeyspaceList[i].second - CPUkeyspaceList[i].first);
+		std::pair<long double, long double> token;
+		std::list<std::pair<long double, long double> >::iterator iter;
+		for(iter = CPUkeyspaceList.begin(); iter != CPUkeyspaceList.end(); iter++) {
+			token = *iter;
+			this->stats.currentOpenTokens += (token.second - token.first);
 		}
 		s.currentOpenTokens = this->stats.currentOpenTokens;
 		
 		/*
-		for(int i = 0; i < GPUkeyspaceList.size(); i++) {
-			this->stats.currentOpenTokens += (GPUkeyspaceList[i].second - GPUkeyspaceList[i].first);
+		for(iter = GPUkeyspaceList.begin(); iter != GPUkeyspaceList.end(); iter++) {
+			token = *iter;
+			this->stats.currentOpenTokens += (token->second - token->first);
 		}
+		s.currentOpenTokens = this->stats.currentOpenTokens;
 		*/
+	/*
 		this->statsMutex.unlock();
+		this->stats.totalHashFound = 0;
+		this->stats.milHashSec = 0;
 		return s;
 	}
+	*/
+
+BruteForceStats getStats(BruteForceStats &s) {
+	this->statsMutex.lock();
+	s.milHashSec = this->stats.milHashSec;
+	s.totalHashFound = this->stats.totalHashFound;
+	this->stats.totalHashFound = 0;
+	this->stats.milHashSec = 0;
+	// calc our current open tokens:
+	//
+	this->stats.currentOpenTokens = 0;
+	std::pair<long double, long double> token;
+	std::list<std::pair<long double, long double> >::iterator iter;
+	for(iter = CPUkeyspaceList.begin(); iter != CPUkeyspaceList.end(); iter++) {
+		token = *iter;
+		this->stats.currentOpenTokens += (token.second - token.first);
+		for(int mmm=0; mmm < this->cpuCount; mmm++) {
+			if(cpuCurrent[mmm] > token.first && cpuCurrent[mmm] < token.second) {
+				this->stats.currentOpenTokens -= (cpuCurrent[mmm] - token.first);
+				break;
+			}
+		}
+	}
+	s.currentOpenTokens = this->stats.currentOpenTokens;
+	//qDebug() << "Currently " << (double)s.currentOpenTokens << " open tokens";
+
+	/*
+	for(int i = 0; i < GPUkeyspaceList.size(); i++) {
+	this->stats.currentOpenTokens += (GPUkeyspaceList[i].second - GPUkeyspaceList[i].first);
+	}
+	*/
+	this->statsMutex.unlock();
+	return s;
+}
+
+
 
 	BruteForceMatch getMatch(BruteForceMatch &s) {
 		if(this->matchList.size() > 0) {
@@ -165,7 +221,7 @@ public:
 	void delBTree(void *hash, size_t s);
 	bool findBTree(void *hash, size_t s);
 
-	void start(std::vector< std::pair< long double, long double> > *keyspaceList);
+	void start();
 	void stop();
 
 
@@ -174,15 +230,18 @@ public:
 	unsigned long NewThread();
 
 	static unsigned long  _stdcall NewThreadCPU(void *);
-	unsigned long NewThreadCPU();
+	unsigned long NewThreadCPU(void *param, int thread_id);
 
 	static unsigned long  _stdcall NewThreadGPU(void *);
-	unsigned long NewThreadGPU();
+	unsigned long NewThreadGPU(void *param, int thread_id);
 
 #else
 	void *NewThread(void *);
 	void *NewThread();
 #endif
+
+	
+	std::list< std::pair< long double, long double> > keyspaceList;
 
 private:
 	
@@ -195,11 +254,15 @@ private:
 
 	BOOL stopRunning;
 
+	int cpuCount;
+	BOOL hyperThreading;
+	std::vector <int> cpuThreads;
+	std::vector <long double> cpuCurrent;
+
 	std::vector< BruteForceMatch > matchList;
 	
-	std::vector< std::pair< long double, long double> > *keyspaceList;
-	std::vector< std::pair< long double, long double> > GPUkeyspaceList;
-	std::vector< std::pair< long double, long double> > CPUkeyspaceList;
+	std::list <std::pair< long double, long double> > CPUkeyspaceList;
+	std::list <std::pair< long double, long double> > GPUkeyspaceList;
 
 	std::string EnabledModule;
 

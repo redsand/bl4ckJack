@@ -42,7 +42,7 @@ char * BaseConversion::ToBase(long double number, char *buffer, size_t len) {
 
 			number = floor((number / (this->charsetLen))) - 1;
 			//qDebug() << "number is " << (double) number;
-		} while(number >= 0);
+		} while(number >= 0 && this);
 
 		buffer[iter] = '\0';
 		this->strrev(buffer);

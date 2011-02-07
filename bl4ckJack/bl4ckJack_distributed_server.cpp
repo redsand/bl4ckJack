@@ -23,8 +23,11 @@ DistributedServer::~DistributedServer() {
 	
 	//this->server->unbind<RemoteService>("RemoteService");
 	this->server->stop();
-	
-	delete this->server;
+	// sleep?
+	try {
+		delete this->server;
+	} catch(...) {
+	}
 }
 
 void DistributedServer::setArgs() {

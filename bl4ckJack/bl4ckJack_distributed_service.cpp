@@ -72,7 +72,7 @@ BOOL RemoteServiceImpl::submitKeyspace(long double start, long double stop) {
 		this->brute->getKeyspace = false;
 		keypair.first = start;
 		keypair.second = stop;
-		this->keyspaceList.push_back(keypair);
+		this->brute->keyspaceList.push_back(keypair);
 		qDebug() << "submitKeyspace low: " << (double)start << " high: " << (double)stop;
 		return TRUE;
 	} /* else
@@ -127,7 +127,7 @@ void RemoteServiceImpl::start() {
 	// create our thread to manage that does all the brute forcing.
 	// 
 
-	this->brute->start(&this->keyspaceList);
+	this->brute->start();
 
 	// needs to know our keyspace for bruteforcing
 
@@ -144,5 +144,5 @@ void RemoteServiceImpl::stop() {
 void RemoteServiceImpl::clearKeyspace(void) {
 	// clear our keyspace
 	qDebug() << "clearKeyspace";
-	this->keyspaceList.clear();
+	this->brute->keyspaceList.clear();
 }

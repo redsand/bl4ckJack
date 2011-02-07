@@ -33,7 +33,10 @@ public:
 	}
 
 	~RemoteServiceImpl() {
-		delete this->brute;
+		try {
+			delete this->brute;
+		} catch(std::exception const& e) {
+		}
 	}
 
 
@@ -67,7 +70,6 @@ private:
 	
 	std::string charset;
 	std::string EnabledModule;
-	std::vector< std::pair< long double, long double> > keyspaceList;
 	std::vector< std::string > hashList;
 
 };
