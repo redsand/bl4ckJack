@@ -122,39 +122,6 @@ public:
 
 	}
 	
-	/*
-	BruteForceStats getStats(BruteForceStats &s) {
-
-		this->statsMutex.lock();
-		s.milHashSec = this->stats.milHashSec;
-		s.totalHashFound = this->stats.totalHashFound;
-		
-		// calc our current open tokens:
-		//
-		this->stats.currentOpenTokens = 0;
-		std::pair<long double, long double> token;
-		std::list<std::pair<long double, long double> >::iterator iter;
-		for(iter = CPUkeyspaceList.begin(); iter != CPUkeyspaceList.end(); iter++) {
-			token = *iter;
-			this->stats.currentOpenTokens += (token.second - token.first);
-		}
-		s.currentOpenTokens = this->stats.currentOpenTokens;
-		
-		/*
-		for(iter = GPUkeyspaceList.begin(); iter != GPUkeyspaceList.end(); iter++) {
-			token = *iter;
-			this->stats.currentOpenTokens += (token->second - token->first);
-		}
-		s.currentOpenTokens = this->stats.currentOpenTokens;
-		*/
-	/*
-		this->statsMutex.unlock();
-		this->stats.totalHashFound = 0;
-		this->stats.milHashSec = 0;
-		return s;
-	}
-	*/
-
 BruteForceStats getStats(BruteForceStats &s) {
 	this->statsMutex.lock();
 	s.milHashSec = this->stats.milHashSec;
@@ -176,7 +143,6 @@ BruteForceStats getStats(BruteForceStats &s) {
 			}
 		}
 	}
-	s.currentOpenTokens = this->stats.currentOpenTokens;
 	//qDebug() << "Currently " << (double)s.currentOpenTokens << " open tokens";
 
 	/*
@@ -184,6 +150,9 @@ BruteForceStats getStats(BruteForceStats &s) {
 	this->stats.currentOpenTokens += (GPUkeyspaceList[i].second - GPUkeyspaceList[i].first);
 	}
 	*/
+
+	s.currentOpenTokens = this->stats.currentOpenTokens;
+
 	this->statsMutex.unlock();
 	return s;
 }
@@ -258,6 +227,9 @@ private:
 	BOOL hyperThreading;
 	std::vector <int> cpuThreads;
 	std::vector <long double> cpuCurrent;
+	int gpuCount;
+	std::vector <int> gpuThreads;
+	std::vector <long double> gpuCurrent;
 
 	std::vector< BruteForceMatch > matchList;
 	

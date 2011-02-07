@@ -76,7 +76,7 @@ void *BruteForce::NewThread() {
 	this->cpuCount = sysinfo.dwNumberOfProcessors;
 
 	
-   if(!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
+   if(!SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS))
    {
       DWORD dwError = GetLastError();
    } 
@@ -107,10 +107,16 @@ void *BruteForce::NewThread() {
 #endif
 
 		}
-	} else {
-		for(int cpu_iter=0; cpu_iter < (this->cpuCount); cpu_iter++) {
+	} else {	
+		for(int cpu_iter=0; cpu_iter < (this->cpuCount)+1; cpu_iter++) {
 			qDebug() << "Initiating " << cpu_iter << " CPU threads";
 			cpuCurrent.push_back(cpu_iter);
+#ifdef WIN32
+			hThreadCPU = CreateThread(NULL, 0, BruteForce::NewThreadCPU, this, 0, &threadIdCPU);
+#else
+			pthread_create(&threadIdCPU, BruteForce::NewThreadCPU, this);
+#endif
+
 		}
 	}
 
@@ -378,32 +384,6 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 						}
 					} 
 					
-					/*
-					if(t.ElapsedTiming(startTime, t.StopTiming()) >= 1000) {
-							// warn that we're in need of more keys
-						if(setKey) {
-							if(CPUkeyspaceList.size() < 2) {
-								if( (((token.second - token.first) * 0.80 ) ) < token.first) {
-									this->getKeyspace = true;
-									setKey = FALSE;
-								}
-							}
-						} else {
-							if(CPUkeyspaceList.size() < 2) {
-								setKey = TRUE;
-							}
-						}
-						//qDebug() << "time elapse success " << startTime << " and " << t.StopTiming() << " is " << t.ElapsedTiming(startTime, t.StopTiming());
-						this->statsMutex.lock();
-						this->stats.totalHashFound += hashFound;
-						hashFound = 0;
-						currentStopToken =token.first;
-						this->stats.milHashSec += (((currentStopToken - currentStartToken)) / 1000000 );
-						currentStartToken = token.first;
-						this->statsMutex.unlock();
-						startTime = t.StartTiming();
-					}
-					*/
 					token.first++;
 				}
 			}
@@ -453,24 +433,92 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 #endif
 
 	
+	Timer t;
+	int hashFound = 0;
+
+	// get our thread/cpu #
+	BruteForce *self = (BruteForce*) param;
+
 	while (!stopRunning) {
+	
+		long double currentStartToken=0, currentStopToken=0;
+		std::list<std::pair<long double, long double>>::iterator iter;
+		std::pair<long double, long double> token;
+
+		while(!stopRunning && !GPUkeyspaceList.empty()) {
+			// load our charset and keyspace and begin bruteing
+
+			currentStartToken=0;
+			currentStopToken=0;
+
+			int j=0;
+
+			for(j = 0; j < bl4ckJackModules.count(); j++) {
+				if(this->EnabledModule.compare(bl4ckJackModules[j]->moduleInfo->name) == 0)
+					break;
+			}
+
+			if(j >= bl4ckJackModules.count()) {
+				//qDebug() << "unable to compare " << this->EnabledModule << " with any available module."
+			} else {
+				Timer t;
+				qint64 startTime = t.StartTiming(), stopTime = 0;
+				iter = GPUkeyspaceList.begin();
+				token = *iter;
+				currentStartToken = token.first;
+				size_t retLen=0;
+				BOOL setKey = TRUE;
+	
+				while(!stopRunning && token.first <= token.second) {
+
+
+					// we have our starting and stopping token,
+					// lets batch up our gpu kernel and store results
+					//setup our arguments
+					// cudaConfigureCall(blocks,threads,shared_mem_size,stream)
+					// cudaSetupArgument(sth1,offset);
+					// offset+=sizeof(sth1);
+					// cudaSetupArgument(sth2,offset);
+
+					//cudaLaunch("bl4ckJackGPUKernelExecute");
+
+					dim3 grid, block;
+					cudaError_t err;
+
+					grid.x = blocks_x; grid.y = blocks_y; grid.z = 1;
+					block.x = threads_per_block; block.y = 1; block.z = 1;
+					//GPUBruteforceKernelExecute<<<grid, block, shared_mem_required>>>(src_gwords, dst_gwords);	
+
+					err = cudaThreadSynchronize();
+
+					/*
+					this->base->ToBase(token.first, (char *)bruteStr, MAX_BRUTE_CHARS);
+					bl4ckJackModules[j]->pfbl4ckJackGenerate((unsigned char *)results, &retLen, (unsigned char *)bruteStr, strlen((const char *)bruteStr));
 		
+					// gen our hash and check for existance in hash list
+					if(this->btree.find(results, retLen)) {
+						hashFound++;
+						BruteForceMatch match;
+						char *hex = bintohex(retLen, (char *)results);
+						match.hash = std::string(hex);
+						match.password = std::string((char *)bruteStr);
+						this->matchList.push_back(match);
+						//qDebug() << "successfully broke password " << bruteStr << " with result: " << hex;
+						free(hex);
+						// if this is our last one, lets stop
+					}
+					*/
+				}
+			}
+			GPUkeyspaceList.remove(token); //pop_front();
+		}
+
+		this->getKeyspace = true;
+		if(stopRunning) break;
 #ifdef WIN32
 		Sleep(1500);
 #else
 		usleep(1500);
-#endif
-		
-		while(!stopRunning && !GPUkeyspaceList.empty()) {
-			// load our charset and keyspace and begin bruteing
-			
-			Sleep(1000);
-		}
-
-#ifdef WIN32
-		Sleep(500);
-#else
-		usleep(500);
 #endif
 
 	}
