@@ -7,6 +7,7 @@
 #include "bl4ckJack_timer.h"
 
 #include "cuda_gpu.h"
+#include <cuda_runtime.h>
 
 #include <algorithm>
 #include <iostream>
@@ -62,7 +63,7 @@ void *BruteForce::NewThread() {
 
 	// lets check out our cuda availability
 	GPU_Dev gpu;
-	int gpu_count = gpu.getDevCount();
+	this->gpuCount = gpu.getDevCount();
 
 	// need to create a thread per cpu and pass arg to thread as offset
 
@@ -130,11 +131,18 @@ void *BruteForce::NewThread() {
 #else
 #endif
 
-#ifdef WIN32
-	hThreadGPU = CreateThread(NULL, 0, BruteForce::NewThreadGPU, this, 0, &threadIdGPU);
-#else
-	pthread_create(&threadIdGPU, BruteForce::NewThreadGPU, this);
-#endif
+	GPU_Dev gpuDev;
+	this->gpuCount = gpuDev.getDevCount();
+
+	for(int gpu_iter=0; gpu_iter < this->gpuCount; gpu_iter++) {
+			qDebug() << "Initiating " << gpu_iter << " GPU threads";
+			gpuCurrent.push_back(gpu_iter);
+		#ifdef WIN32
+			hThreadGPU = CreateThread(NULL, 0, BruteForce::NewThreadGPU, this, 0, &threadIdGPU);
+		#else
+			pthread_create(&threadIdGPU, BruteForce::NewThreadGPU, this);
+		#endif
+	}
 
 	while(!stopRunning) {
 
@@ -152,7 +160,7 @@ void *BruteForce::NewThread() {
 				pair.first = current_iter; // in case our previous token overlapped
 
 			// if no gpu then set this to 100
-			if(gpu_count <= 0) {
+			if(this->gpuCount <= 0) {
 				pct = 100;
 			} else {
 				pct = settings->value("config/dc_cpu_keyspace_pct", 10).toInt();
@@ -161,7 +169,7 @@ void *BruteForce::NewThread() {
 
 			long double space = pair.second - pair.first;
 			long double cpu_amnt = (long double) (space * (float)((float)pct / 100));
-			long double gpu_amnt = 100 - cpu_amnt;
+			long double gpu_amnt = (long double) (space * (float)((float)100 - pct) / 100);
 
 			// check and make sure we have gpus to use, otherwise we're going to rely strictly on CPU
 
@@ -186,16 +194,17 @@ void *BruteForce::NewThread() {
 
 				// per GPU
 				// if gpu available {
-				/*
-				sub_amnt = (long double) floor((gpu_amnt / gpuCount));
-				for(int mine = 0; mine < cpuCount; mine++) {
-					pair.first = ((long double)keyspaceList->at(keyspaceIter).first + ((mine + breakIter) * sub_amnt));
-					pair.second = ((long double) keyspaceList->at(keyspaceIter).first + ((mine + breakIter) * sub_amnt) + sub_amnt);
- 					GPUkeyspaceList.push_back(pair);
-					cur -= (pair.second - pair.first);
-					final_second = pair.second;
+				if(this->gpuCount > 0) {
+					sub_amnt = (long double) floor((gpu_amnt / gpuCount));
+					//std::pair< long double, long double> pair2;
+					for(int mine = 0; mine < gpuCount; mine++) {
+						pair2.first = ((long double)pair.first + final_second + ((mine + breakIter) * sub_amnt));
+						pair2.second = ((long double) pair.first + final_second + ((mine + breakIter) * sub_amnt) + sub_amnt + 1);
+ 						GPUkeyspaceList.push_back(pair2);
+						cur -= (pair2.second - pair2.first);
+					}
+					final_second = pair2.second;
 				}
-				*/
 
 				breakIter++;
 			}
@@ -376,6 +385,8 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 							cpuCurrent[my_cpu] = token.first;
 							this->stats.totalHashFound += hashFound;
 							this->stats.milHashSec += (((token.first - currentStartToken)) / 1000000);
+							//this->stats.milHashSec += (((token.first - currentStartToken) / (t.ElapsedTiming(startTime, t.StopTiming()) * 1000) ) / 1000000);
+							//this->stats.milHashSec += ((token.first - currentStartToken) / (t.ElapsedTiming(startTime, t.StopTiming()) * 1000)) / 1000000;
 							this->statsMutex.unlock();
 							hashFound = 0;
 							currentStopToken = token.first;
@@ -413,6 +424,23 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 
 }
 
+
+
+
+void buildHashList(Node *p, int level, void **hashList, int *iter)
+{
+	if (p != 0 && iter != 0)
+	{
+	//cout << "Node " << p->data << " at level " << level << endl;
+		hashList[*iter] = malloc(p->len);
+		memcpy(hashList[*iter], p->data, p->len);
+		(*iter)++;
+		if(*iter >= 2000) return;
+		buildHashList(p->left, level+1, hashList, iter);
+		buildHashList(p->right, level+1, hashList, iter);
+	}
+}
+
 #ifdef WIN32
 unsigned long _stdcall BruteForce::NewThreadGPU(void *param) {
 #else
@@ -439,24 +467,96 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 	// get our thread/cpu #
 	BruteForce *self = (BruteForce*) param;
 
+	self->gpuThreads.push_back(thread_id);
+
+	// sleep 1 second so all threads catch up
+#if defined(WIN32) || defined(WIN64)
+	Sleep(1000);
+#else
+	usleep(1000);
+#endif
+	
+	int my_gpu = -1;
+	for(int gpu_iter=0; gpu_iter < this->gpuCount; gpu_iter++) {
+		if(this->gpuThreads[gpu_iter] == thread_id) {
+			my_gpu = gpu_iter;
+			break;
+		}
+	}
+
+	if(my_gpu < 0) {
+		qDebug() << "gpu assignment failed, wtf?";
+		my_gpu = 0;
+	}
+
+	QString qstr;
+	qstr.sprintf("config/gpu_device_%d_enabled",my_gpu);
+
+	if(!settings->value(qstr).toBool()) {
+		
+		#ifdef WIN32
+			ExitThread(0);
+			return 0;
+		#else
+			pthread_exit(0);
+			return 0;
+		#endif
+
+	}
+
+	GPU_Dev gpu;
+	char gpuBuf[255];
+	
 	while (!stopRunning) {
 	
 		long double currentStartToken=0, currentStopToken=0;
 		std::list<std::pair<long double, long double>>::iterator iter;
 		std::pair<long double, long double> token;
+		
+		int j=0;
+		for(j = 0; j < bl4ckJackModules.count(); j++) {
+			if(this->EnabledModule.compare(bl4ckJackModules[j]->moduleInfo->name) == 0)
+				break;
+		}
+	
+		int threadCount = settings->value("config/gpu_thread_count").toInt();
+		int blockCount = settings->value("config/gpu_block_count").toInt();
+		unsigned int shmem = settings->value("config/gpu_max_mem_init").toUInt();
+		// which cuda device are we?
+		devInfo info;
+		gpu.getDevInfoStr(my_gpu, gpuBuf, sizeof(gpuBuf)-1);
+		gpuBuf[sizeof(gpuBuf)-1] = '\0';
+		qDebug() << "Using GPU device " << my_gpu << " (" << gpuBuf << ")";
+		// if gpu not enabled on this device, die 		
+		gpu.setDevice(my_gpu);
+		gpu.getDevs(&info);
+		blockCount = gpu.getCoreCount(my_gpu) * info.Devs[my_gpu].deviceProp.multiProcessorCount ;
+		if (blockCount < 8) blockCount=8; //--- CHECKS THAT BLOCKS ARE AT LEAST ---
+		if (blockCount > 512) blockCount=512; //--- CHECKS THAT BLOCKS ARN'T MORE THAN 512 ---
 
+
+		// charset, charsetLen, hashArray, hashArrayLen, hashEntryLen (0=string)
+		void **hashList = NULL;
+		int hashIter=0;
+		hashList = (void **) calloc(this->getBTree()->getCount(), sizeof(void*));
+		// make copy so we can pass to our GPU
+		buildHashList(this->getBTree()->getRootNode(), 0, hashList, &hashIter);
+
+		bl4ckJackModules[j]->pfbl4ckJackInitGPU((char *)this->base->getCharset(), this->base->getCharsetLength(), hashList, hashIter, this->getBTree()->getRootNode()->len);
+		
+		
+		for(int i=0; i < this->getBTree()->getCount(); i++) {
+			free(hashList[i]);
+		}
+		free(hashList);
+
+		//dim3 gridDim, blockDim
+		
 		while(!stopRunning && !GPUkeyspaceList.empty()) {
 			// load our charset and keyspace and begin bruteing
 
 			currentStartToken=0;
 			currentStopToken=0;
-
-			int j=0;
-
-			for(j = 0; j < bl4ckJackModules.count(); j++) {
-				if(this->EnabledModule.compare(bl4ckJackModules[j]->moduleInfo->name) == 0)
-					break;
-			}
 
 			if(j >= bl4ckJackModules.count()) {
 				//qDebug() << "unable to compare " << this->EnabledModule << " with any available module."
@@ -468,50 +568,123 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 				currentStartToken = token.first;
 				size_t retLen=0;
 				BOOL setKey = TRUE;
-	
-				while(!stopRunning && token.first <= token.second) {
 
+				int offset=0;
+				double *gpuStart=NULL, *gpuStop=NULL;
+				cudaMalloc(&gpuStart, sizeof(double));
+				cudaMalloc(&gpuStop, sizeof(double));
+				cudaMemcpy(gpuStart, &token.first, sizeof(double), cudaMemcpyHostToDevice);
+				cudaMemcpy(gpuStop, &token.second, sizeof(double), cudaMemcpyHostToDevice);
+
+				char **gpuhashSuccess=NULL; 
+				int hashSuccessMax=1024, *gpuSuccessMax=NULL;
+
+				cudaMalloc(&gpuhashSuccess, hashSuccessMax);
+				cudaMalloc(&gpuSuccessMax, sizeof(hashSuccessMax));
+				cudaMemcpy(gpuSuccessMax, &hashSuccessMax, sizeof(int), cudaMemcpyHostToDevice);
+
+				while(!stopRunning && token.first <= token.second) {
 
 					// we have our starting and stopping token,
 					// lets batch up our gpu kernel and store results
-					//setup our arguments
-					// cudaConfigureCall(blocks,threads,shared_mem_size,stream)
-					// cudaSetupArgument(sth1,offset);
-					// offset+=sizeof(sth1);
-					// cudaSetupArgument(sth2,offset);
+					bl4ckJackModules[j]->pfbl4ckJackGenerateGPU(blockCount, threadCount, shmem, gpuStart, gpuStop, gpuhashSuccess, gpuSuccessMax);
+					
+					if(t.ElapsedTiming(startTime, t.StopTiming()) >= 1000) {
+						// warn that we're in need of more keys
+						int mymatchCount=0;	
+						cudaMemcpy(&token.first, gpuStart, sizeof(double), cudaMemcpyDeviceToHost);
+						cudaMemcpy(&token.second, gpuStop, sizeof(double), cudaMemcpyDeviceToHost);
+						cudaMemcpy(&hashSuccessMax, gpuSuccessMax, sizeof(int), cudaMemcpyDeviceToHost);
+						if(cudaMemcpyFromSymbol(&mymatchCount, "matchCount", sizeof(mymatchCount), 0, cudaMemcpyDeviceToHost) != cudaSuccess) {
+								continue;
+						}
+						
+						qDebug() << "First GPU token: " << (double)token.first << " Second: " << (double)token.second;
+						if(setKey) {
+							if(GPUkeyspaceList.size() == 1) {
+								if( (((token.second - token.first) * 0.80 ) ) < token.first) {
+   									this->getKeyspace = true;
+									setKey = FALSE;
+								}
+							}
+						} else {	
+							if(GPUkeyspaceList.size() == 1) {
+								setKey = TRUE;
+							}
+						}
 
-					//cudaLaunch("bl4ckJackGPUKernelExecute");
+						// report any matches
+						if(hashSuccessMax > 0 && mymatchCount > 0) {
+						
+							char **localHash = (char **) calloc(hashSuccessMax, sizeof(char *));
+							memset(localHash, 0, hashSuccessMax * sizeof(char *));
+							char **localPass = (char **) calloc(hashSuccessMax, sizeof(char *));
+							memset(localPass, 0, hashSuccessMax * sizeof(char *));
+							/*
+							
+							for(int i=0; i < hashSuccessMax; i++) {
+								localHash[i] = (char *)malloc(512+1);
+								memset(localHash[i], 0, 512+1);
+								if(cudaMemcpyFromSymbol(&localHash[i], "matchHashList", 512, i, cudaMemcpyDeviceToHost) != cudaSuccess) {
+									continue;
+								}
+								localPass[i] = (char *)malloc(512+1);
+								memset(localPass[i], 0, 512+1);
 
-					dim3 grid, block;
-					cudaError_t err;
+								if(cudaMemcpyFromSymbol(&localHash[i], "matchPassList", 512, i, cudaMemcpyDeviceToHost) != cudaSuccess) {
+									continue;
+								}
+				
+								BruteForceMatch match;
+								char *hex = bintohex(retLen, (char *)localHash[i]);
+								match.hash = std::string(hex);
+								
+								match.password = std::string((char *)localPass[i]);
+								this->matchList.push_back(match);
+								qDebug() << "successfully broke password " << localPass[i] << " with result: " << hex;
+								free(hex);
+								
+							}
+							for(int i=0; i < hashSuccessMax; i++) {
+								free(localHash[i]);
+								free(localPass[i]);
+							}
+							*/
+							free(localHash);
+							free(localPass);
+							
+						}
+						
+						//qDebug() << "time elapse success " << startTime << " and " << t.StopTiming() << " is " << t.ElapsedTiming(startTime, t.StopTiming());
+						this->statsMutex.lock();
+						gpuCurrent[my_gpu] = token.first;
+						this->stats.totalHashFound += hashFound;
+						this->stats.milHashSec += (((token.first - currentStartToken)) / 1000000);
+						//this->stats.milHashSec += ((token.first - currentStartToken) / (t.ElapsedTiming(startTime, t.StopTiming()) * 1000)) / 1000000;
+						//this->stats.milHashSec += (((token.first - currentStartToken) / (t.ElapsedTiming(startTime, t.StopTiming()) * 1000 * 1000) ) / 1000000);
+						this->statsMutex.unlock();
+						hashFound = 0;
+						currentStopToken = token.first;
+						currentStartToken = token.first;
+						startTime = t.StartTiming();
+								
+						cudaMemcpy(gpuStart, &token.first, sizeof(double), cudaMemcpyHostToDevice);
+						cudaMemcpy(gpuStop, &token.second, sizeof(double), cudaMemcpyHostToDevice);
 
-					grid.x = blocks_x; grid.y = blocks_y; grid.z = 1;
-					block.x = threads_per_block; block.y = 1; block.z = 1;
-					//GPUBruteforceKernelExecute<<<grid, block, shared_mem_required>>>(src_gwords, dst_gwords);	
-
-					err = cudaThreadSynchronize();
-
-					/*
-					this->base->ToBase(token.first, (char *)bruteStr, MAX_BRUTE_CHARS);
-					bl4ckJackModules[j]->pfbl4ckJackGenerate((unsigned char *)results, &retLen, (unsigned char *)bruteStr, strlen((const char *)bruteStr));
-		
-					// gen our hash and check for existance in hash list
-					if(this->btree.find(results, retLen)) {
-						hashFound++;
-						BruteForceMatch match;
-						char *hex = bintohex(retLen, (char *)results);
-						match.hash = std::string(hex);
-						match.password = std::string((char *)bruteStr);
-						this->matchList.push_back(match);
-						//qDebug() << "successfully broke password " << bruteStr << " with result: " << hex;
-						free(hex);
-						// if this is our last one, lets stop
+						hashSuccessMax=1024;
+						cudaMemcpy(gpuSuccessMax, &hashSuccessMax, sizeof(int), cudaMemcpyHostToDevice);
 					}
-					*/
 				}
+
+				cudaFree(gpuStart);
+				cudaFree(gpuStop);
+				cudaFree(gpuhashSuccess);
+				cudaFree(gpuSuccessMax);
 			}
-			GPUkeyspaceList.remove(token); //pop_front();
+			GPUkeyspaceList.remove(token);
 		}
+
+		bl4ckJackModules[j]->pfbl4ckJackFreeGPU();
 
 		this->getKeyspace = true;
 		if(stopRunning) break;

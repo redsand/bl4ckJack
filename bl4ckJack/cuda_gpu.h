@@ -69,6 +69,7 @@ extern "C" {
 		int mallocGPU(void **ptr, size_t size);
 		int freeGPU(void *ptr); 
 		int last_error_string(char *str, unsigned int str_len);
+		int getCoreCount(int device);
 
 	private:
 		bool isCUDAError(void);

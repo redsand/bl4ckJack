@@ -34,6 +34,12 @@ typedef struct {
 	fbl4ckJackInfo pfbl4ckJackInfo;
 	fbl4ckJackFree pfbl4ckJackFree;
 	fbl4ckJackGenerate pfbl4ckJackGenerate;
+
+	/* GPU */
+	fbl4ckJackInitGPU pfbl4ckJackInitGPU;
+	fbl4ckJackFreeGPU pfbl4ckJackFreeGPU;
+	fbl4ckJackGenerateGPU pfbl4ckJackGenerateGPU;
+
 } bl4ckJackModuleList;
 
 extern QList<bl4ckJackModuleList *> bl4ckJackModules;

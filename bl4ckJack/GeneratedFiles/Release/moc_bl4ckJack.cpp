@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'bl4ckJack.h'
 **
-** Created: Sun Feb 6 13:57:08 2011
+** Created: Sat Feb 12 01:00:54 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.7.1)
 **
 ** WARNING! All changes made in this file will be lost!

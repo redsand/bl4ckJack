@@ -53,6 +53,9 @@ class BinSTree
    public: int isEmpty(void);
    public: int hasError(void);
    public: size_t getCount(void);
+   public: Node *getRootNode(void) {
+			   return root;
+		}
 
    public: bool equals(unsigned char *, size_t, unsigned char *, size_t);
    public: bool lessThan(unsigned char *, size_t, unsigned char *, size_t);

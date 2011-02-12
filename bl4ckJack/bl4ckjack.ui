@@ -76,7 +76,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Total Uncracked Hashes:</string>
+     <string>Total Hashes: </string>
     </property>
    </widget>
    <widget class="QLabel" name="lblPPStxt">
@@ -89,7 +89,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Passwords Per Second (PPS) </string>
+     <string>Hashes/second: </string>
     </property>
    </widget>
    <widget class="QLabel" name="lblCompletionTimetxt">
@@ -102,7 +102,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Time Until Completion: </string>
+     <string>Completion Time: </string>
     </property>
    </widget>
    <widget class="QLabel" name="lblRecoveredPasswordstxt">
@@ -115,7 +115,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Total Recovered Passwords: </string>
+     <string>Total Passwords: </string>
     </property>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">

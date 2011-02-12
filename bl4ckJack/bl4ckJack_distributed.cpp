@@ -60,7 +60,7 @@ void bl4ckJackBrute::doWork() {
 	// break up our keyspace into array
 	// each peice: (max size / ((serverCount) * tokensPerServer));
 	// maxVal = charsetLen^ keyLen (16) + keyLen(15) etc
-	keyLen = settings->value("config/gpu_max_password_size").toInt();
+	keyLen = settings->value("config/dc_max_password_size").toInt();
 	for(int i=1; i <= keyLen; i++) {
 		maxVal += ((long double) pow((long double)settings->value("config/charset").toString().length(), i));
 	}
@@ -203,6 +203,7 @@ void bl4ckJackBrute::doWork() {
 					std::string hash(pair.second.toAscii().constData());
 					serverConList[i]->getClientStub().setRequestUserData(hash);
 					serverConList[i]->initHash();
+					if(j % 10 == 0)
 					emit updateBruteStatus(3, (float)((j+1) / bJMain->tblHashView->getList().count()) * 100, tr("Distributing hash %1 to remote host %2.").arg(j).arg(serverList[i]));
 				}
 			} catch(const RCF::Exception &e) {
@@ -333,7 +334,7 @@ void bl4ckJackBrute::doWork() {
 
 		}
 
-		qDebug() << "Adding " << (double)keysLeft << " with " << (double)(pertoken * ((tokencount - tokeniter)+1));
+		//qDebug() << "Adding " << (double)keysLeft << " with " << (double)(pertoken * ((tokencount - tokeniter)+1));
 		keysLeft += (pertoken * ((tokencount - tokeniter)+1));
 		// pps (a second)
 		// keysLeft (total keys)
@@ -356,7 +357,7 @@ void bl4ckJackBrute::doWork() {
 			hashFoundPrev = totalHashFound;
 			emit updateBruteLabels(pps, tr("%1 days, %2:%3:%4").arg(days).arg(tmp.sprintf("%02d",hours)).arg(tmp.sprintf("%02d",minutes)).arg(tmp.sprintf("%02d",seconds)), totalHashFound);
 			if(pps > 0)
-				emit updateBruteStatus(3, pct, tr("Currently bruteforcing with %1 available nodes (%2 Mil/sec).").arg(successfulServerList.count()).arg(tmp.sprintf("%.6f",(double)pps)));
+				emit updateBruteStatus(3, pct, tr("Currently bruteforcing with %1 available nodes (%2 Mil/sec).").arg(successfulServerList.count()).arg(tmp.sprintf("%.2f",(double)pps)));
 		}
 		msleep(1000);
 	}

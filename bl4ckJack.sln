@@ -6,14 +6,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{BDBE5885-5148-4529-BAD4-2B62380E7DA3}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SHA1", "SHA1\SHA1.vcproj", "{9C84668D-D5A2-4F07-A20B-684884FC1E3A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B3E01AE3-A7D5-4F06-A051-D49E23EC0146} = {B3E01AE3-A7D5-4F06-A051-D49E23EC0146}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MD5", "MD5\MD5.vcproj", "{0D2ACF8B-5D2E-48E4-A6E6-6BCBBF4D52A8}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B3E01AE3-A7D5-4F06-A051-D49E23EC0146} = {B3E01AE3-A7D5-4F06-A051-D49E23EC0146}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

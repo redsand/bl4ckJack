@@ -162,7 +162,7 @@ ModulesPage	*modPage = NULL;
 	 char buf[1024];
 
      QGroupBox *gpuGroup = new QGroupBox(tr("Available System GPUs"));
-     QListWidget *gpuList = new QListWidget();
+     gpuList = new QListWidget();
 	 gpuList->setSortingEnabled(1);
 	 gpuList->setFixedHeight(80);
 
@@ -170,11 +170,12 @@ ModulesPage	*modPage = NULL;
 		g.getDevInfoStr(i, buf, sizeof(buf)-1);
 		QListWidgetItem *itm = new QListWidgetItem(buf, gpuList);
 		itm->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-		gpuList->insertItem(i + 1, itm);
+		itm->setCheckState( (settings->value(tr("config/gpu_device_%1_enabled").arg(i),true).toBool()) ? Qt::Checked : Qt::Unchecked);
+		gpuList->insertItem(i + 0, itm);
 	 }
 	 if(i == 0) {
 		QListWidgetItem *itm = new QListWidgetItem(tr("(No CUDA/GPU device available.)"), gpuList);
-		gpuList->insertItem(i + 1, itm);
+		gpuList->insertItem(i + 0, itm);
 		gpuList->setEnabled(false);
 	 }
 
@@ -196,11 +197,14 @@ ModulesPage	*modPage = NULL;
 	inputMaxMemInit->setMaximumWidth(64);
 	inputMaxMemInit->setMinimumWidth(64);
 
-	inputMaxPasswordSize = new QLineEdit(settings->value("config/gpu_max_password_size",16).toString());
-	inputMaxPasswordSize->setMaximumWidth(32);
-	inputMaxPasswordSize->setMinimumWidth(32);
-
-
+	inputGPUBlocks = new QLineEdit(settings->value("config/gpu_block_count",8).toString());
+	inputGPUBlocks->setMaximumWidth(32);
+	inputGPUBlocks->setMinimumWidth(32);
+	
+	inputGPUThreads = new QLineEdit(settings->value("config/gpu_thread_count",256).toString());
+	inputGPUThreads->setMaximumWidth(32);
+	inputGPUThreads->setMinimumWidth(32);
+	
 
 	inputEnableHardwareMonitoring = new QCheckBox(tr("Enable GPU Hardware Health Monitoring"));
 	if(settings->value("config/gpu_health_monitor_enabled").toBool()) {
@@ -211,7 +215,7 @@ ModulesPage	*modPage = NULL;
      QVBoxLayout *cfgLayout = new QVBoxLayout;
 	 cfgLayout->setAlignment(Qt::AlignLeft);
 
-	QLabel *label;
+	 QLabel *label;
 	 QHBoxLayout *cfgLayoutH;
 	 
 	 cfgLayoutH = new QHBoxLayout;
@@ -224,8 +228,16 @@ ModulesPage	*modPage = NULL;
 
 	 cfgLayoutH = new QHBoxLayout;
 	 cfgLayoutH->setAlignment(Qt::AlignLeft);
-	 cfgLayoutH->addWidget(inputMaxPasswordSize);
-	 label = new QLabel(tr("Maximum password length"));
+	 cfgLayoutH->addWidget(inputGPUBlocks);
+	 label = new QLabel(tr("Maximum blocks available for use"));
+	 label->setFixedWidth(256);
+	 cfgLayoutH->addWidget(label);
+	 cfgLayout->addLayout(cfgLayoutH);
+
+	 cfgLayoutH = new QHBoxLayout;
+	 cfgLayoutH->setAlignment(Qt::AlignLeft);
+	 cfgLayoutH->addWidget(inputGPUThreads);
+	 label = new QLabel(tr("Maximum threads available for use"));
 	 label->setFixedWidth(256);
 	 cfgLayoutH->addWidget(label);
 	 cfgLayout->addLayout(cfgLayoutH);
@@ -296,6 +308,7 @@ ModulesPage	*modPage = NULL;
 	txtCPUTokenPercentage->setMinimumWidth(32);
 
 
+
 	enableLocalServerCheckBox = new QCheckBox(tr("Enable Local Computing Service"));
 	if(settings->value("config/dc_local_service").toBool()) {
 		enableLocalServerCheckBox->setChecked(true);
@@ -329,6 +342,19 @@ ModulesPage	*modPage = NULL;
 	 cfgLayout->addWidget(enableLocalServerCheckBox);
 	 cfgLayout->addWidget(enableCompressionCheckBox);
 	 cfgLayout->addWidget(enableSSLCheckBox);
+
+	inputMaxPasswordSize = new QLineEdit(settings->value("config/dc_max_password_size",16).toString());
+	inputMaxPasswordSize->setMaximumWidth(32);
+	inputMaxPasswordSize->setMinimumWidth(32);
+
+	 cfgLayoutH = new QHBoxLayout;
+	 cfgLayoutH->setAlignment(Qt::AlignLeft);
+	 cfgLayoutH->addWidget(inputMaxPasswordSize);
+	 label = new QLabel(tr("Maximum password length"));
+	 label->setFixedWidth(256);
+	 cfgLayoutH->addWidget(label);
+	 cfgLayout->addLayout(cfgLayoutH);
+
 
 	 cfgLayoutH = new QHBoxLayout;
 	 cfgLayoutH->setAlignment(Qt::AlignLeft);
@@ -419,7 +445,7 @@ ModulesPage	*modPage = NULL;
 	 delete this->txtMinimumTokens;
 	 delete this->enableSSLCheckBox;
 	 delete this->enableCompressionCheckBox;
-
+	 delete inputMaxPasswordSize;
 	 delete this->serverListMenu;
  }
 
@@ -620,11 +646,19 @@ ModulesPage	*modPage = NULL;
 
 	 settings->setValue("config/charset", confPage->charsetText->toPlainText());
 
+	 for(int i=0; i < gpuPage->gpuList->count(); i++) {
+		 QListWidgetItem *itm = gpuPage->gpuList->item(i);
+		 settings->setValue(tr("config/gpu_device_%1_enabled").arg(i), (itm->checkState() == Qt::Checked) ? true : false);
+	 }
+
 	 settings->setValue("config/gpu_video_refresh_rate_ms", gpuPage->inputRefreshRate->text().toDouble());
 	 settings->setValue("config/gpu_max_mem_init", gpuPage->inputMaxMemInit->text().toLong());
-	 settings->setValue("config/gpu_max_password_size", gpuPage->inputMaxPasswordSize->text().toInt());
 	 settings->setValue("config/gpu_health_monitor_enabled", gpuPage->inputEnableHardwareMonitoring->isChecked());
+	 settings->setValue("config/gpu_block_count", gpuPage->inputGPUBlocks->text().toLong());
+	 settings->setValue("config/gpu_thread_count", gpuPage->inputGPUThreads->text().toLong());
 
+
+	 settings->setValue("config/dc_max_password_size", dcPage->inputMaxPasswordSize->text().toInt());
 	 settings->setValue("config/dc_local_service", dcPage->enableLocalServerCheckBox->isChecked());
 	 settings->setValue("config/dc_compression", dcPage->enableCompressionCheckBox->isChecked());
 	 settings->setValue("config/dc_ssl_encryption", dcPage->enableSSLCheckBox->isChecked());

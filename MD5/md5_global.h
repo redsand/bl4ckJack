@@ -1,7 +1,7 @@
 #ifndef MD5_GLOBAL_H
 #define MD5_GLOBAL_H
 
-#include <QtCore/qglobal.h>
+#include <cuda_runtime.h>
 
 #ifdef MD5_LIB
 # define MD5_EXPORT Q_DECL_EXPORT
@@ -32,5 +32,9 @@ void MD5Update (MD5_CTX *, unsigned char *, unsigned int);
 void MD5Final (unsigned char [16], MD5_CTX *);
 
 
+
+__device__ void MD5InitD (MD5_CTX *);
+__device__ void MD5UpdateD (MD5_CTX *, unsigned char *, unsigned int);
+__device__ void MD5FinalD (unsigned char [16], MD5_CTX *);
 
 #endif // MD5_GLOBAL_H

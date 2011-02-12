@@ -145,11 +145,16 @@ BruteForceStats getStats(BruteForceStats &s) {
 	}
 	//qDebug() << "Currently " << (double)s.currentOpenTokens << " open tokens";
 
-	/*
-	for(int i = 0; i < GPUkeyspaceList.size(); i++) {
-	this->stats.currentOpenTokens += (GPUkeyspaceList[i].second - GPUkeyspaceList[i].first);
+	for(iter = GPUkeyspaceList.begin(); iter != GPUkeyspaceList.end(); iter++) {
+		token = *iter;
+		this->stats.currentOpenTokens += (token.second - token.first);
+		for(int mmm=0; mmm < this->cpuCount; mmm++) {
+			if(gpuCurrent[mmm] > token.first && gpuCurrent[mmm] < token.second) {
+				this->stats.currentOpenTokens -= (gpuCurrent[mmm] - token.first);
+				break;
+			}
+		}
 	}
-	*/
 
 	s.currentOpenTokens = this->stats.currentOpenTokens;
 

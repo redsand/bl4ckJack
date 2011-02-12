@@ -35,11 +35,21 @@
 
  public:
      GPUPage(QWidget *parent = 0);
+	 ~GPUPage() {
+		 delete inputRefreshRate;
+		 delete inputMaxMemInit;
+		 delete inputGPUBlocks;
+		 delete inputGPUThreads;
+		 delete inputEnableHardwareMonitoring;
+		 delete gpuList;
+	 }
 
 	QLineEdit *inputRefreshRate;
 	QLineEdit *inputMaxMemInit;
-	QLineEdit *inputMaxPasswordSize;
+	QLineEdit *inputGPUBlocks;
+	QLineEdit *inputGPUThreads;
 	QCheckBox *inputEnableHardwareMonitoring;
+	QListWidget *gpuList;
 	 
  };
 
@@ -72,6 +82,8 @@
 	 QCheckBox *enableLocalServerCheckBox;
 	 QCheckBox *enableSSLCheckBox;
 	 QCheckBox *enableCompressionCheckBox;
+	 
+	 QLineEdit *inputMaxPasswordSize;
 	 QLineEdit *txtMinimumTokens;
 	 QLineEdit *txtCPUTokenPercentage;
 	 QLineEdit *txtTimeout;

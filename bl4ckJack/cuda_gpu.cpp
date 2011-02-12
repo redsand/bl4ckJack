@@ -92,8 +92,35 @@ int GPU_Dev::getDevCount() {
 
 		return ret;
 	}
-
 	return this->devInf.deviceCount;
+}
+        
+// Defines for GPU Architecture types (using the SM version to determine the # of cores per SM
+typedef struct {
+	int SM; // 0xMm (hexidecimal notation), M = SM Major version, and m = SM minor version
+    int Cores;
+} sSMtoCores;
+
+sSMtoCores nGpuArchCoresPerSM[] = 
+	{ 
+		  { 0x10,  8 },
+          { 0x11,  8 },
+          { 0x12,  8 },
+          { 0x13,  8 },
+          { 0x20, 32 },
+          { 0x21, 48 },
+          {   -1, -1 }
+        };
+
+int GPU_Dev::getCoreCount(int device) {
+        int index = 0;
+        while (nGpuArchCoresPerSM[index].SM != -1) {
+                if (nGpuArchCoresPerSM[index].SM == ((this->devInf.Devs[device].deviceProp.major << 4) + this->devInf.Devs[device].deviceProp.minor) ) {
+                        return nGpuArchCoresPerSM[index].Cores;
+                }
+                index++;
+        }
+        return -1;
 }
 
 GPU_Dev::GPU_Dev(void)
@@ -164,7 +191,7 @@ int GPU_Dev::getDevInfoStr(int CUDA_device_ID, char *str, int len)
 	}
 
 	/* There are X devices supporting CUDA */
-	snprintf(str, len,"%s (v%d.%d)\n\tProcessors: %d, ClockRate: %01.02f MHz, TotalMem:%01.02f MB\n",
+	snprintf(str, len,"%s (v%d.%d) Processors: %d, ClockRate: %01.02f MHz, TotalMem: %01.02f MB",
 		this->devInf.Devs[dev].deviceProp.name, 
 		this->devInf.Devs[dev].deviceProp.major,
 		this->devInf.Devs[dev].deviceProp.minor,

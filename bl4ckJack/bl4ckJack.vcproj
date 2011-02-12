@@ -57,7 +57,7 @@
 				Optimization="2"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
+				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;$(CUDA_PATH_V3_2)\include&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
 				PreprocessorDefinitions="WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_NO_DEBUG,NDEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
@@ -80,7 +80,8 @@
 				AdditionalOptions="/NODEFAULTLIB:MSVCRT.LIB"
 				AdditionalDependencies="qtmain.lib QtCore4.lib QtGui4.lib cudart.lib libeay32MT.lib ssleay32MT.lib zdll.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(CUDA_PATH_V3_2)\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
+				UACExecutionLevel="2"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -140,7 +141,7 @@
 				Optimization="2"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
+				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;$(CUDA_INC_PATH)&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
 				PreprocessorDefinitions="WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;QT_NO_DEBUG,NDEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
@@ -163,7 +164,7 @@
 				AdditionalOptions="/NODEFAULTLIB:MSVCRTD.LIB"
 				AdditionalDependencies="qtmaind.lib QtCored4.lib QtGuid4.lib cudart.lib libeay64MT.lib ssleay64MT.lib zdll.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(CUDA_PATH_V3_2)\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -221,7 +222,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
+				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;$(CUDA_INC_PATH)&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
 				PreprocessorDefinitions="WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -245,7 +246,8 @@
 				AdditionalOptions="/NODEFAULTLIB:MSVCRTD.LIB"
 				AdditionalDependencies="qtmaind.lib QtCored4.lib QtGuid4.lib cudart.lib libeay32MDd.lib ssleay32MDd.lib zdll.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(CUDA_PATH_V3_2)\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
+				UACExecutionLevel="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				RandomizedBaseAddress="0"
@@ -303,7 +305,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
+				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;$(CUDA_INC_PATH)&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
 				PreprocessorDefinitions="WIN64;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -327,7 +329,7 @@
 				AdditionalOptions="/NODEFAULTLIB:MSVCRTD.LIB"
 				AdditionalDependencies="qtmaind.lib QtCored4.lib QtGuid4.lib cudart.lib libeay32MDd.lib ssleay32MDd.lib zdll.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib&quot;;&quot;$(CUDA_PATH_V3_2)\lib\Win32&quot;;C:\OpenSSL\lib\VC;.\zlib\lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="17"
@@ -735,10 +737,6 @@
 			</File>
 			<File
 				RelativePath=".\cuda_gpu.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\cuda_gpu_bruteforce.cu"
 				>
 			</File>
 			<File
@@ -1329,10 +1327,6 @@
 			</File>
 			<File
 				RelativePath=".\cuda_gpu.h"
-				>
-			</File>
-			<File
-				RelativePath=".\cuda_gpu_bruteforce.h"
 				>
 			</File>
 		</Filter>

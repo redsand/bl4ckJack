@@ -56,11 +56,18 @@ static void MD5Transform (unsigned int [4], unsigned char [64]);
 static void Encode (unsigned char *, unsigned int *, unsigned int);
 static void Decode (unsigned int *, unsigned char *, unsigned int);
 
+
+__device__ static void MD5TransformD (unsigned int [4], unsigned char [64]);
+__device__ static void EncodeD (unsigned char *, unsigned int *, unsigned int);
+__device__ static void DecodeD (unsigned int *, unsigned char *, unsigned int);
+
+
 static unsigned char PADDING[64] = {
   0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
+
 
 /* F, G, H and I are basic MD5 functions.
  */
@@ -101,8 +108,7 @@ Rotation is separate from addition to prevent recomputation.
  */
 void MD5Init (MD5_CTX *context) {
   context->count[0] = context->count[1] = 0;
-  /* Load magic initialization constants.
-*/
+  /* Load magic initialization constants.*/
   context->state[0] = 0x67452301;
   context->state[1] = 0xefcdab89;
   context->state[2] = 0x98badcfe;
@@ -286,4 +292,3 @@ static void Decode (unsigned int  *output, unsigned char *input, unsigned int le
   for (i = 0, j = 0; j < len; i++, j += 4)
 	output[i] = ((unsigned int )input[j]) | (((unsigned int )input[j+1]) << 8) | (((unsigned int )input[j+2]) << 16) | (((unsigned int )input[j+3]) << 24);
 }
-

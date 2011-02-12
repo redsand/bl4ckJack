@@ -293,7 +293,7 @@ bl4ckJack::~bl4ckJack()
 
 	
 	QString q;
-	q.sprintf("%.6f", 0.0);
+	q.sprintf("%.2f", 0.0);
 	this->ui.lblPPS->setText(tr("%1 Mil/sec").arg(q));
 	this->ui.lblTotalHashes->setText(tr("0"));
 	this->ui.lblRecoveredPasswords->setText(tr("0"));
@@ -595,7 +595,7 @@ bl4ckJack::~bl4ckJack()
 
  }
 
-//static int asdlafjsd=0;
+static int asdlafjsd=0;
 
 void bl4ckJack::updateUIFileAdd(QString a, QString b, QString c, float status) {
 	 
@@ -605,10 +605,14 @@ void bl4ckJack::updateUIFileAdd(QString a, QString b, QString c, float status) {
 	tmp.append(a);
 	tmp.append(" hash ");
 	tmp.append(c);
-	tmp.append(" successfully.");
+	tmp.append(" successfully (plus 10 others).");
 
-	this->statusBar()->showMessage(tmp);
-	this->statusBar()->repaint();
+	if(asdlafjsd++ % 10 == 0) {
+		this->statusBar()->showMessage(tmp);
+		this->statusBar()->repaint();
+		asdlafjsd = 1;
+	}
+
 	this->tblHashView->addEntry(a, c);
 	this->ui.lblTotalHashes->setText(tr("%1").arg(this->tblHashView->getList().count()));
 	//this->repaint();
@@ -626,7 +630,7 @@ void bl4ckJack::updateBruteLabels(double milpw, QString ttl, qint64 crackedPassw
 	
 	QString q, q2, q3;
 	if(milpw > 0) {
-		q.sprintf("%.6f", milpw);
+		q.sprintf("%.2f", milpw);
 		this->ui.lblPPS->setText(tr("%1 Mil/sec").arg(q));
 		trayIcon->setToolTip(tr("bl4ckJack "VERSION "\r\nBruteforcing @ %1 Mil/sec\r\n").arg(q));
 	}
@@ -707,18 +711,29 @@ void bl4ckJack::updateBrutePassword(QString hash, QString password) {
 
 			fbl4ckJackInit pfbl4ckJackInit = (fbl4ckJackInit) library.resolve("bl4ckJackInit");
 
+			fbl4ckJackInitGPU pfbl4ckJackInitGPU = (fbl4ckJackInitGPU) library.resolve("bl4ckJackInitGPU");
+
 			fbl4ckJackMatch pfbl4ckJackMatch = (fbl4ckJackMatch) library.resolve("bl4ckJackMatch");
 			
 			fbl4ckJackInfo pfbl4ckJackInfo = (fbl4ckJackInfo) library.resolve("bl4ckJackInfo");
 			
 			fbl4ckJackFree pfbl4ckJackFree = (fbl4ckJackFree) library.resolve("bl4ckJackFree");
+
+			fbl4ckJackFreeGPU pfbl4ckJackFreeGPU = (fbl4ckJackFreeGPU) library.resolve("bl4ckJackFreeGPU");
 			
 			fbl4ckJackGenerate pfbl4ckJackGenerate = (fbl4ckJackGenerate) library.resolve("bl4ckJackGenerate");
+
+			fbl4ckJackGenerateGPU pfbl4ckJackGenerateGPU = (fbl4ckJackGenerateGPU) library.resolve("bl4ckJackGenerateGPU");
 
 			if(pfbl4ckJackInit)
 			qDebug() << " pfbl4ckJackInit Found!";
 			else
 			qDebug() << " pfbl4ckJackInit Not Found";
+			
+			if(pfbl4ckJackInitGPU)
+			qDebug() << " pfbl4ckJackInitGPU Found!";
+			else
+			qDebug() << " pfbl4ckJackInitGPU Not Found";
 
 			if(pfbl4ckJackMatch)
 			qDebug() << " pfbl4ckJackMatch Found!";
@@ -735,20 +750,36 @@ void bl4ckJack::updateBrutePassword(QString hash, QString password) {
 			else
 			qDebug() << " pfbl4ckJackFree Not Found";
 
+			if(pfbl4ckJackFreeGPU)
+			qDebug() << " pfbl4ckJackFreeGPU Found!";
+			else
+			qDebug() << " pfbl4ckJackFreeGPU Not Found";
+
 			if(pfbl4ckJackGenerate)
 			qDebug() << " pfbl4ckJackGenerate Found!";
 			else
 			qDebug() << " pfbl4ckJackGenerate Not Found";
 
+			if(pfbl4ckJackGenerateGPU)
+			qDebug() << " pfbl4ckJackGenerateGPU Found!";
+			else
+			qDebug() << " pfbl4ckJackGenerateGPU Not Found";
+
 			if(pfbl4ckJackInit && pfbl4ckJackMatch && pfbl4ckJackInfo && pfbl4ckJackFree
-				&& pfbl4ckJackGenerate) {
+				&& pfbl4ckJackGenerate && /* GPU */ pfbl4ckJackInitGPU && pfbl4ckJackFreeGPU && pfbl4ckJackGenerate) {
 				bl4ckJackModuleList *bjm = (bl4ckJackModuleList *) malloc(sizeof(bl4ckJackModuleList)); // new bl4ckJackModuleList;
-				bjm->pfbl4ckJackInit = pfbl4ckJackInit;
+				bjm->pfbl4ckJackInit = pfbl4ckJackInit;				
+				bjm->moduleInfo = pfbl4ckJackInfo();
 				bjm->pfbl4ckJackMatch = pfbl4ckJackMatch;
 				bjm->pfbl4ckJackInfo = pfbl4ckJackInfo;
 				bjm->pfbl4ckJackFree = pfbl4ckJackFree;
 				bjm->pfbl4ckJackGenerate = pfbl4ckJackGenerate;
-				bjm->moduleInfo = pfbl4ckJackInfo();
+
+				/* GPU */
+				bjm->pfbl4ckJackGenerateGPU = pfbl4ckJackGenerateGPU;
+				bjm->pfbl4ckJackFreeGPU = pfbl4ckJackFreeGPU;
+				bjm->pfbl4ckJackInitGPU = pfbl4ckJackInitGPU;
+
 
 				bl4ckJackModules.append(bjm);
 				qDebug() << "Detected bl4ckJack module: " << bjm->moduleInfo->name << " (" << bjm->moduleInfo->authors << ")";
