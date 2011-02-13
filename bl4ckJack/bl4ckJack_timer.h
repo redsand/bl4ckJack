@@ -5,6 +5,11 @@
 
 #include <Qt>
 
+//! Timer Class
+/**
+ * Timer Class
+ * Timer Class used for detecting and managing time elapse.
+ */
 class Timer {
 	public:
 		Timer(void);

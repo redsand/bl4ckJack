@@ -20,7 +20,7 @@ typedef unsigned long int uint32_t;
 #  endif
 #endif
 
-/* MD5 context. */
+//! MD5 context
 typedef struct {
   unsigned int state[4];                                   /* state (ABCD) */
   unsigned int count[2];        /* number of bits, modulo 2^64 (lsb first) */

@@ -95,9 +95,9 @@ int GPU_Dev::getDevCount() {
 	return this->devInf.deviceCount;
 }
         
-// Defines for GPU Architecture types (using the SM version to determine the # of cores per SM
+//! Defines for GPU Architecture types (using the SM version to determine the # of cores per SM
 typedef struct {
-	int SM; // 0xMm (hexidecimal notation), M = SM Major version, and m = SM minor version
+	int SM; /**< 0xMm (hexidecimal notation), M = SM Major version, and m = SM minor version */
     int Cores;
 } sSMtoCores;
 

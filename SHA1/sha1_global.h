@@ -18,6 +18,7 @@
 # endif
 #endif
 
+//! SHA1 Context
 typedef struct {
   unsigned int state[5];
   unsigned int count[2];

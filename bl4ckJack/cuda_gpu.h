@@ -22,6 +22,11 @@
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
+//! Singleton Class
+/**
+ * Singleton Class
+ * Singleton Class used for singleton cores.
+ */
 template <class T>
 class Singleton
 {
@@ -43,11 +48,13 @@ extern "C" {
 
 	#define MAX_DEVICES 512
 	/* CUDA Device Information */
+//! devInfo contains array of struct Devices
 	struct devInfo
 	{
 		/* Number of CUDA capable device detected */
 		int deviceCount;
 		/* CUDA specific */
+//! Devices contains device information
 		struct Devices
 		{
 			int CUDA_device_ID;
@@ -55,6 +62,11 @@ extern "C" {
 		}Devs[MAX_DEVICES];
 	};
 
+//! GPU_Dev Class
+/**
+ * GPU_Dev Class
+ * GPU_Dev Class used for managing GPU devices.
+ */
 	class GPU_Dev {
 
 	public:
