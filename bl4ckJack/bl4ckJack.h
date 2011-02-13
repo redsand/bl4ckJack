@@ -7,6 +7,65 @@
 
 #define DEFAULT_PORT		40201
 
+/*! \mainpage %bl4ckJack Distributed Bruteforce Framework
+ *
+ * \section intro_sec Introduction
+ 
+	%bl4ckJack Distributed Bruteforce Framework was initially written by Tim Shelton (redsand [at] blacksecurity.org).
+	
+	The goal of this project is to be the one of the best open source, publicly supported, gui, distributed bruteforcing framework choices available.
+	
+	Downloads available at <a href="https://github.com/redsand/bl4ckJack">%bl4ckJack Download (GitHub)</a>
+	
+	%bl4ckJack is always looking for volunteers.  If you are interested, please contact redsand [at] blacksecurity.org.
+
+   \section install_sec Installation
+ 	
+   \subsection install_sec_mswin Microsoft Windows:
+   	   
+	   \subsection step1 Step 1 (Windows): 
+			Download and Execute the Installer
+			
+	   \subsection step2 Step 2 (Windows): 
+			Select where you would like to install %bl4ckJack and finish the installation.
+	   
+	   
+   \section install_sec_gnulinux GNU/Linux:
+   	   
+   \subsection step1 Step 1 (GNU/Linux): 
+		Unpackage the source or binary bl4ckJack.tar.gz
+			ie:
+				tar xfzv bl4ckJack-VERSION.tar.gz
+		
+		
+   \subsection step2 Step 2 (GNU/Linux): 
+		(Binary) Execute the installer:
+			ie:
+				chmod 755 ./install.sh && ./install.sh
+				
+		(Compile) make install our source.
+			ie:
+				./configure && make && make install
+		
+		
+   \section run_sec Execution
+   
+   \subsection step1 Step 1: 
+		run %bl4ckJack
+   
+   \subsection step2 Step 2: 
+		Right-click on the Hash input table and add your selected hashes.
+   
+   \subsection step3 Step 3: 
+		Select the Control Menu Option and select the sub option 'Start'.
+		
+   \subsection step4 Step 4: 
+		Wait for your distributed bruteforced permutation keyset to complete.
+  
+ */
+
+ 
+
 #include <QtGui>
 #include <QtGui/QMainWindow>
 #include <QSystemTrayIcon>
