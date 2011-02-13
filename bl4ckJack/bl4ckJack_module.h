@@ -14,6 +14,11 @@
 
 #ifndef bl4ckJack_Module
 
+//! bl4ckJack_Module Structure
+/**
+ * bl4ckJack_Module Structure
+ * bl4ckJack_Module Structure (Name, Credentials, Version, etc.)
+ */
 typedef struct {
 
 	char *name;

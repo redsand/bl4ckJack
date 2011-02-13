@@ -9,6 +9,11 @@
  class QSortFilterProxyModel;
  class QItemSelectionModel;
 
+//! TableModel Class
+/**
+ * TableModel Class
+ * TableModel Class used for quickly viewing and managing a large list of hashes.
+ */
  class TableModel : public QAbstractTableModel
  {
      Q_OBJECT

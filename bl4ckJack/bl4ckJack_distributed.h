@@ -15,13 +15,26 @@
 
 #include "bl4ckJack_distributed_server.h"
 
-
- class bl4ckJackBrute : public QThread {
+//! bl4ckJackBrute Class
+/**
+ * bl4ckJackBrute Class
+ * bl4ckJackBrute Class used for managing bruteforce node
+ */
+class bl4ckJackBrute : public QThread {
 
 	 Q_OBJECT
 
 public:
 
+	//! bl4ckJackBrute constructor
+	/**
+	  * bl4ckJackBrute constructor
+	  * Used for managing bruteforce node
+	  * @param parent widget pointer
+      * @see bl4ckJackBrute()
+      * @see ~bl4ckJackBrute()
+      * @return None
+	  */
 	bl4ckJackBrute(QObject *parent) : QThread(parent) {
 		go=true;
 		stop=false;
@@ -29,6 +42,14 @@ public:
 		this->distributedServer = NULL;
 	}
 	
+	//! bl4ckJackBrute Deconstructor
+	/**
+	  * bl4ckJackBrute Deconstructor
+	  * Used for managing bruteforce node
+      * @see bl4ckJackBrute()
+      * @see ~bl4ckJackBrute()
+      * @return None
+	  */
 	~bl4ckJackBrute() {
 		stop=true;
 		go = true;
@@ -43,23 +64,65 @@ public:
 		return QThread::msleep(x);
 	}
 
+	//! Pause bruteforce within node.
+	/**
+	  * Pause bruteforce within node.
+	  * Pause bruteforce within node.
+      * @see bl4ckJackBrute()
+      * @see ~bl4ckJackBrute()
+      * @return None
+	  */
 	void pause(void) {
 		go = false;
 	}
 
-	
+	//! Set Listen Host
+	/**
+	  * Set Listen Host
+	  * Set listen source host for connections
+	  * @param QString arg
+      * @see bl4ckJackBrute()
+      * @see ~bl4ckJackBrute()
+      * @return None
+	  */
 	void setListenHost(QString arg) {
 		this->listenHost = arg;
 	}
 
+	//! Set Listen Only
+	/**
+	  * Set Listen Only
+	  * Only listen on source host for connections
+	  * @param bool arg
+      * @see bl4ckJackBrute()
+      * @see ~bl4ckJackBrute()
+      * @return None
+	  */
 	void setListenOnly(bool arg) {
 		this->listenOnly = arg;
 	}
 
+	//! Set Module
+	/**
+	  * Set Module
+	  * Set module used for brute forcing.
+	  * @param QString arg
+      * @see bl4ckJackBrute()
+      * @see ~bl4ckJackBrute()
+      * @return None
+	  */
 	void setModule(QString arg) {
 		this->EnabledModule = arg;
 	}
 	
+	//! Get Module
+	/**
+	  * Get Module
+	  * Get module used for brute forcing.
+      * @see bl4ckJackBrute()
+      * @see ~bl4ckJackBrute()
+      * @return QString
+	  */
 	QString getModule(void) {
 		return this->EnabledModule;
 	}
@@ -76,12 +139,22 @@ public slots:
     void doWork();
 
 private:
+	//! If not go, then lets pause
 	bool go;
+	//! If true, then stop
 	bool stop;
+	//! If true, only listen, don't connect out to other hosts.
 	bool listenOnly;
+	
+	//! Host to listen on
 	QString listenHost;
+	
+	//! DistributedServer object
 	DistributedServer *distributedServer;
+	
+	//! Internal module used for generation
 	QString EnabledModule;
+	
  };
  
 #endif
