@@ -11,35 +11,16 @@
 __device__ __constant__ char __align__(16) gpu_charset[MAX_CHARSET];
 __device__ __constant__ unsigned int gpu_charset_len;
 
-__device__ __constant__ char **hashList=NULL;
-__device__ __constant__ unsigned long hashListCount=0;
+__device__ __align__(16) char **hashList=NULL;
+__device__ unsigned long hashListCount=0;
 
 __device__ unsigned long matchCount;
-__device__ char matchHashList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
-__device__ char matchPassList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
-
-/* Binary Tree Declarations */
-
-/*
-struct node {
-    int dataLen;
-    void *data;
-    struct node* left;
-    struct node* right;
-    struct node* parent;
-};
-
-struct node* insert(struct node* node, struct node* parentNode, void *data, int dataLen);
-__device__ int lookup(struct node* node, void *target, int targetLen);
-void destroy(struct node *node);
-__device__ __constant__ struct node *bTreeSearch;
-*/
+__device__ __align__(16) char matchHashList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
+__device__ __align__(16) char matchPassList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
 
 // init our charset
-// hashes into dev mem btree
-// 
-
-//! Initialize
+// init our hashes for matching as well
+//! Initialize GPU for Bruteforcing
 extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charsetLen, void **hashArray, unsigned long hashArrayLen, unsigned int hashEntryLen) {
 	
 	if(cudaMemcpyToSymbol("gpu_charset", charset, charsetLen+1, 0, cudaMemcpyHostToDevice) != cudaSuccess) {
@@ -50,7 +31,7 @@ extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charse
 			return;
 	}
 
-	if(cudaMalloc(&hashList, hashArrayLen * sizeof(char *)) != cudaSuccess) {
+	if(cudaMalloc((void **)&hashList, hashArrayLen * sizeof(char *)) != cudaSuccess) {
 		return;
 	}
 
@@ -59,28 +40,28 @@ extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charse
 		void *entry;
 		if(hashEntryLen > 0) {
 			if(cudaMalloc(&entry, hashEntryLen) != cudaSuccess) 
-				continue;
+				break;
 			if(cudaMemcpy(entry, hashArray[i], hashEntryLen, cudaMemcpyHostToDevice) != cudaSuccess)
-				continue;
+				break;
 		} else {
 			if(cudaMalloc(&entry, strlen((const char *)hashArray[i])+1) != cudaSuccess) 
-				continue;
+				break;
 			if(cudaMemcpy(entry, hashArray[i], strlen((const char *)hashArray[i])+1, cudaMemcpyHostToDevice) != cudaSuccess)
-				continue;
+				break;
 		}
-		if(cudaMemcpy(hashList[i], entry, sizeof(entry), cudaMemcpyHostToDevice) != cudaSuccess)
-			continue;
+		if(cudaMemcpy(&hashList[i], entry, sizeof(void *), cudaMemcpyHostToDevice) != cudaSuccess)
+			break;
 	}
 	
-	if(cudaMemcpyToSymbol("hashListCount", &i, sizeof(i)) != cudaSuccess) {
+	if(cudaMemcpyToSymbol("hashListCount", &hashListCount, sizeof(hashListCount)) != cudaSuccess) {
 			return;
 	}
 
-	if(cudaMemset(matchHashList, 0, /* sizeof(char *) * */ MAX_PASSCOUNT * MAX_PASSLENGTH) != cudaSuccess) {
+	if(cudaMemset(matchHashList, 0, MAX_PASSCOUNT * MAX_PASSLENGTH) != cudaSuccess) {
 		return;
 	}
 
-	if(cudaMemset(matchPassList, 0, /*sizeof(char *) * */ MAX_PASSCOUNT * MAX_PASSLENGTH) != cudaSuccess) {
+	if(cudaMemset(matchPassList, 0, MAX_PASSCOUNT * MAX_PASSLENGTH) != cudaSuccess) {
 		return;
 	}
 

@@ -441,11 +441,11 @@ private:
 	//! Internal Hash List Length used for hash matching
 	unsigned long hashListLength;
 	//! Internal Hash List default Length and growth iteration;
-	unsigned int hashListDefaultSize;
+	unsigned long hashListDefaultSize;
 	//! Internal Hash List default Lenght iterator (this * hashListDefaultSize == total size)
-	unsigned int hashListDefaultIter;
+	unsigned long hashListDefaultIter;
 	//! Internal Default Entry Length, per hash
-	unsigned long hashListEntryLength;
+	unsigned int hashListEntryLength;
 
 	BOOL stopRunning;
 

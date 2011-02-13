@@ -638,9 +638,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 		if (blockCount > 512) blockCount=512; //--- CHECKS THAT BLOCKS ARN'T MORE THAN 512 ---
 
 
-		bl4ckJackModules[j]->pfbl4ckJackInitGPU((char *)this->base->getCharset(), this->base->getCharsetLength(), (void **)hashList, this->hashListLength, (unsigned int) this->hashListEntryLength);
-
-		//dim3 gridDim, blockDim
+		bl4ckJackModules[j]->pfbl4ckJackInitGPU((char *)this->base->getCharset(), this->base->getCharsetLength(), (void **)hashList, hashListLength, (unsigned int) this->hashListEntryLength);
 		
 		while(!stopRunning && !GPUkeyspaceList.empty()) {
 			// load our charset and keyspace and begin bruteing
