@@ -6,15 +6,17 @@
 #include "md5_gpu.h"
 
 #define MAX_CHARSET		255		// bytes (non-unicode support atm)
+#define MAX_PASSLENGTH	255
+#define MAX_PASSCOUNT	1024
 __device__ __constant__ char __align__(16) gpu_charset[MAX_CHARSET];
 __device__ __constant__ unsigned int gpu_charset_len;
 
-__device__ char **hashList=NULL;
-__device__ unsigned long hashListCount=0;
+__device__ __constant__ char **hashList=NULL;
+__device__ __constant__ unsigned long hashListCount=0;
 
 __device__ unsigned long matchCount;
-__device__ char matchHashList[1024][256];
-__device__ char matchPassList[1024][256];
+__device__ char matchHashList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
+__device__ char matchPassList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
 
 /* Binary Tree Declarations */
 
@@ -72,6 +74,14 @@ extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charse
 	
 	if(cudaMemcpyToSymbol("hashListCount", &i, sizeof(i)) != cudaSuccess) {
 			return;
+	}
+
+	if(cudaMemset(matchHashList, 0, /* sizeof(char *) * */ MAX_PASSCOUNT * MAX_PASSLENGTH) != cudaSuccess) {
+		return;
+	}
+
+	if(cudaMemset(matchPassList, 0, /*sizeof(char *) * */ MAX_PASSCOUNT * MAX_PASSLENGTH) != cudaSuccess) {
+		return;
 	}
 
 	return;
@@ -229,15 +239,20 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 
 		if(match==1)
 		{	
+			//cudaMemcpy(matchHashList[matchCount], retBuf, 16, cudaMemcpyDeviceToDevice);
 			
 			for(i=0; i < 16; i++) {
 				matchHashList[matchCount][i] = retBuf[i];
 			}
+			
 
 			for(i=0; i < inputLen; i++) {
 				matchPassList[matchCount][i] = input[i];
 			}
 			matchHashList[matchCount][i] = '\0';
+			
+			//cudaMemcpy(matchPassList[matchCount], input, inputLen + 1, cudaMemcpyDeviceToDevice);
+
 			(*maxSuccess)++;
 			matchCount++;
 	

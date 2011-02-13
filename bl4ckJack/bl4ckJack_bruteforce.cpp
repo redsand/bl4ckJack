@@ -2,7 +2,6 @@
 #include "bl4ckJack_bruteforce.h"
 #include "bl4ckJack_distributed.h"
 
-#include "bl4ckJack_btree.h"
 #include "bl4ckJack.h"
 #include "bl4ckJack_timer.h"
 
@@ -22,16 +21,136 @@ static char *
 bintohex(unsigned int len, char *bindata);
 __inline BOOL hyperThreadingOn();
 
-void BruteForce::addBTree(void *hash, size_t s) {
-	this->btree.insert(hash, s);
+void BruteForce::addHash(void *hash, size_t s) 
+{
+	//this->btree.insert(hash, s);
+
+	if(this->findHash(hash, s)) return;
+
+	hashListEntryLength = s;
+	if(this->hashListLength + 1 > (this->hashListDefaultSize * this->hashListDefaultIter))
+	{
+		//hashList = (unsigned char **)calloc(hashListDefaultSize * hashListDefaultIter, sizeof(unsigned char *));
+		this->hashListDefaultIter++;
+		hashList = (unsigned char **)realloc(hashList, hashListDefaultSize * hashListDefaultIter * sizeof(unsigned char *));
+		//memset(this->hashList[this->hashListLength + 1], 0, hashListDefaultSize * sizeof(unsigned char *));	
+		reorderHash();
+	}
+
+	this->hashList[this->hashListLength] = (unsigned char *)malloc(s);
+	memcpy(hashList[this->hashListLength++], hash, s);
 }
 
-void BruteForce::delBTree(void *hash, size_t s) {
-	this->btree.remove(hash, s);
+void BruteForce::delHash(void *hash, size_t s) 
+{
+	for(unsigned long i = 0; i < this->hashListLength; i++) {
+		if(!memcmp(this->hashList[i], hash, (s > this->hashListEntryLength) ? this->hashListEntryLength : s)) 
+		{
+			free(this->hashList[i]);
+			memmove(this->hashList + i, this->hashList + i + sizeof(unsigned char *), (--this->hashListLength - i) * sizeof(unsigned char *));
+			return;
+		}
+	}
 } 
 
-bool BruteForce::findBTree(void *hash, size_t s) {
-	return this->btree.find(hash, s);
+bool LessThan(unsigned char *base, size_t baseLen, unsigned char *compare, size_t compareLen) 
+{
+
+	register unsigned int i=0;
+	if(!base) return false;
+	if(!compare) return false;
+
+	for(i=0; i < baseLen, i < compareLen; i++) {
+		if(compare[i] > base[i])
+			return false;
+		else if(compare[i] == base[i])
+			continue;
+		else
+			return true;
+	}
+	return true;
+}
+
+bool GreaterThan(unsigned char *base, size_t baseLen, unsigned char *compare, size_t compareLen) {
+
+	//char buf[256];
+	register unsigned int i=0;
+	if(!base) return false;
+	if(!compare) return false;
+	//qDebug() << "Comparing 2 hashes of size " << baseLen;
+	for(i=0; i < baseLen, i < compareLen; i++) {
+		if(compare[i] < base[i])
+			return false;
+		else if(compare[i] == base[i])
+			continue;
+		else
+			return true;
+
+	}
+	return true;
+}
+
+bool Equals(unsigned char *base, size_t baseLen, unsigned char *compare, size_t compareLen) {
+
+	register unsigned int i=0;
+	if(!base) return false;
+	if(!compare) return false;
+
+	for(i=0; i < baseLen, i < compareLen; i++) {
+		if(base[i] != compare[i]) 
+			return false;
+	}
+
+	return true;
+}
+
+bool BruteForce::findHash(void *hash, size_t s) {
+	for(unsigned long i = 0; i < this->hashListLength; i++) {
+		if(!memcmp(this->hashList[i], hash, (s > this->hashListEntryLength) ? this->hashListEntryLength : s)) 
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void BruteForce::reorderHash()
+{
+	unsigned char **temp=(unsigned char **)calloc(this->hashListLength + 1, sizeof(unsigned char *));
+	int l1,l2,u1,u2,i;
+	int size=1,j,k;
+	while(size<this->hashListLength) 
+	{
+		l1=0;
+        k=0;
+        while(l1+size<this->hashListLength)
+        {
+			l2=l1+size;
+            u1=l2-1;
+            u2=(l2+size-1<this->hashListLength)?l2+size-1:this->hashListLength-1;
+            for(i=l1,j=l2;i<=u1&&j<=u2;k++)
+				if(GreaterThan(this->hashList[i], this->hashListEntryLength, this->hashList[j], this->hashListEntryLength) == 1)
+					temp[k]=this->hashList[j++];
+                else
+					temp[k]=this->hashList[i++];
+
+            for(;i<=u1;k++)
+				temp[k]=this->hashList[i++];
+            for(;j<=u2;k++)
+				temp[k]=this->hashList[j++];
+
+            l1=u2+1;
+        }
+
+        for(i=l1;k<this->hashListLength;i++)
+			temp[k++]=this->hashList[i];
+        
+		for(i=0;i<this->hashListLength;i++)
+			this->hashList[i]=temp[i];
+        
+		size*=2;
+	}
+	free(temp);
 }
 
 #ifdef WIN32
@@ -60,6 +179,7 @@ void *BruteForce::NewThread() {
 	
 	std::string charset = settings->value("config/current_charset","empty charset").toString().toStdString();
 	this->base = new BaseConversion(charset);
+
 
 	// lets check out our cuda availability
 	GPU_Dev gpu;
@@ -163,8 +283,8 @@ void *BruteForce::NewThread() {
 			if(this->gpuCount <= 0) {
 				pct = 100;
 			} else {
-				pct = settings->value("config/dc_cpu_keyspace_pct", 10).toInt();
-				if(pct <= 0) pct = 5;
+				pct = settings->value("config/dc_cpu_keyspace_pct", 5).toInt();
+				if(pct < 0) pct = 5;
 			}
 
 			long double space = pair.second - pair.first;
@@ -349,7 +469,7 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 					bl4ckJackModules[j]->pfbl4ckJackGenerate((unsigned char *)results, &retLen, (unsigned char *)bruteStr, strlen((const char *)bruteStr));
 		
 					// gen our hash and check for existance in hash list
-					if(this->btree.find(results, retLen)) {
+					if(this->findHash(results, retLen)) {
 						hashFound++;
 						BruteForceMatch match;
 						char *hex = bintohex(retLen, (char *)results);
@@ -422,23 +542,6 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 	return 0;
 #endif
 
-}
-
-
-
-
-void buildHashList(Node *p, int level, void **hashList, int *iter)
-{
-	if (p != 0 && iter != 0)
-	{
-	//cout << "Node " << p->data << " at level " << level << endl;
-		hashList[*iter] = malloc(p->len);
-		memcpy(hashList[*iter], p->data, p->len);
-		(*iter)++;
-		if(*iter >= 2000) return;
-		buildHashList(p->left, level+1, hashList, iter);
-		buildHashList(p->right, level+1, hashList, iter);
-	}
 }
 
 #ifdef WIN32
@@ -535,20 +638,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 		if (blockCount > 512) blockCount=512; //--- CHECKS THAT BLOCKS ARN'T MORE THAN 512 ---
 
 
-		// charset, charsetLen, hashArray, hashArrayLen, hashEntryLen (0=string)
-		void **hashList = NULL;
-		int hashIter=0;
-		hashList = (void **) calloc(this->getBTree()->getCount(), sizeof(void*));
-		// make copy so we can pass to our GPU
-		buildHashList(this->getBTree()->getRootNode(), 0, hashList, &hashIter);
-
-		bl4ckJackModules[j]->pfbl4ckJackInitGPU((char *)this->base->getCharset(), this->base->getCharsetLength(), hashList, hashIter, this->getBTree()->getRootNode()->len);
-		
-		
-		for(int i=0; i < this->getBTree()->getCount(); i++) {
-			free(hashList[i]);
-		}
-		free(hashList);
+		bl4ckJackModules[j]->pfbl4ckJackInitGPU((char *)this->base->getCharset(), this->base->getCharsetLength(), (void **)hashList, this->hashListLength, (unsigned int) this->hashListEntryLength);
 
 		//dim3 gridDim, blockDim
 		
@@ -712,6 +802,8 @@ void BruteForce::start() {
 
 	
 	// qDebug()
+
+	reorderHash();
 
 #ifdef WIN32
 	hThread = CreateThread(NULL, 0, BruteForce::NewThread, this, 0, &threadId);

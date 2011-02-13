@@ -39,7 +39,7 @@ void RemoteServiceImpl::initHash(void) {
 		return;
 
 	this->hashList.push_back(hash.c_str());
-	qDebug() << "initHash " << hash.c_str();
+	//qDebug() << "initHash " << hash.c_str();
 }
 
 void RemoteServiceImpl::initModule(void) {
@@ -105,24 +105,45 @@ void RemoteServiceImpl::start() {
 	
 	this->brute->setModule(this->EnabledModule);
 
+	int j=0;
+	for(j = 0; j < bl4ckJackModules.count(); j++) {
+		if(this->EnabledModule.compare(bl4ckJackModules[j]->moduleInfo->name) == 0)
+			break;
+	}
+
+	if(j == bl4ckJackModules.count()) {
+		qDebug() << "Module not found: " << this->EnabledModule.c_str() << ", exiting.";
+		return;
+	}
+
 	// start brute thread with given keyspaces
-	
-	qDebug() << "creating hashList b-tree in host memory.";
-	// generate our BTree for comparison
+	qDebug() << "creating hashList in host memory.";
+
+	// generate our hash list for comparison
 	size_t slen=0;
 	for(unsigned int i = (this->hashList.size() / 2); i < this->hashList.size(); i++) {
 		slen = strlen(this->hashList[i].c_str());
-		void *hash = (void *) HexToBin((char *)this->hashList[i].c_str(), slen);
-		this->brute->addBTree(hash, slen / 2);
+		if(bl4ckJackModules[j]->moduleInfo->isSalted) {
+			void *hash = (void *) strdup(this->hashList[i].c_str());
+			this->brute->addHash(hash, slen + 1);
+		} else {
+			void *hash = (void *) HexToBin((char *)this->hashList[i].c_str(), slen);
+			this->brute->addHash(hash, slen / 2);
+		}
 	}
 
 	for(unsigned int i = 0; i < (this->hashList.size() / 2); i++) {
 		slen = strlen(this->hashList[i].c_str());
-		void *hash = (void *) HexToBin((char *)this->hashList[i].c_str(), slen);
-		this->brute->addBTree(hash, slen / 2);
+		if(bl4ckJackModules[j]->moduleInfo->isSalted) {
+			void *hash = (void *) strdup(this->hashList[i].c_str());
+			this->brute->addHash(hash, slen + 1);
+		} else {
+			void *hash = (void *) HexToBin((char *)this->hashList[i].c_str(), slen);
+			this->brute->addHash(hash, slen / 2);
+		}
 	}
 
-	qDebug() << "hashList b-tree " << this->brute->getBTree()->getCount() << " units";
+	qDebug() << "hashList " << this->brute->getHashListCount() << " units";
 
 	// create our thread to manage that does all the brute forcing.
 	// 

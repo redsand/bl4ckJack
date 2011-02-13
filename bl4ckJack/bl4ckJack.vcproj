@@ -223,7 +223,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".\GeneratedFiles;&quot;$(QTDIR)\include&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)&quot;;&quot;$(QTDIR)\include\qtmain&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;.\;&quot;$(CUDA_INC_PATH)&quot;;RCF\include\;boost_1_45_0;RCF\src\RCF;RCF\src\SF;C:\OpenSSL\include;.\zlib\include"
-				PreprocessorDefinitions="WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB"
+				PreprocessorDefinitions="WIN32;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_GUI_LIB;DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -708,10 +708,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\bl4ckJack_btree.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\bl4ckJack_config.cpp"
 				>
 			</File>
@@ -762,7 +758,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_PATH_V3_2)\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)\moc_bl4ckjack.cpp&quot;"
 					/>
@@ -773,7 +769,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)\moc_bl4ckjack.cpp&quot;"
 					/>
@@ -784,7 +780,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)\moc_bl4ckjack.cpp&quot;"
 					/>
@@ -795,7 +791,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN64 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;;&quot;.\GeneratedFiles\$(ConfigurationName)\moc_bl4ckjack.cpp&quot;"
 					/>
@@ -942,10 +938,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\bl4ckJack_btree.h"
-				>
-			</File>
-			<File
 				RelativePath=".\bl4ckJack_config.h"
 				>
 				<FileConfiguration
@@ -954,7 +946,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_PATH_V3_2)\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -965,7 +957,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -976,7 +968,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -987,7 +979,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN64 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_config.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1046,7 +1038,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_PATH_V3_2)\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1057,7 +1049,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1068,7 +1060,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1079,7 +1071,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN64 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1138,7 +1130,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_PATH_V3_2)\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1149,7 +1141,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1160,7 +1152,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1171,7 +1163,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN64 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_distributed_server.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1238,7 +1230,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_PATH_V3_2)\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1249,7 +1241,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DNDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1260,7 +1252,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB -DDEBUG  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1271,7 +1263,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Moc&apos;ing $(InputFileName)..."
-						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-IC:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v3.2\include&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
+						CommandLine="&quot;$(QTDIR)\bin\moc.exe&quot;   -DWIN64 -DQT_LARGEFILE_SUPPORT -DQT_CORE_LIB -DQT_GUI_LIB  &quot;-I.\GeneratedFiles&quot; &quot;-I$(QTDIR)\include&quot; &quot;-I.\GeneratedFiles\$(ConfigurationName)\.&quot; &quot;-I$(QTDIR)\include\qtmain&quot; &quot;-I$(QTDIR)\include\QtCore&quot; &quot;-I$(QTDIR)\include\QtGui&quot; &quot;-I.&quot; &quot;-I$(CUDA_INC_PATH)\.&quot; &quot;-I.\RCF\include&quot; &quot;-I.\boost_1_45_0&quot; &quot;-I.\RCF\src\RCF&quot; &quot;-I.\RCF\src\SF&quot; &quot;-IC:\OpenSSL\include&quot; &quot;-I.\zlib\include&quot; &quot;.\bl4ckJack_tableview.h&quot; -o &quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;&#x0D;&#x0A;"
 						AdditionalDependencies="&quot;$(QTDIR)\bin\moc.exe&quot;;$(InputPath)"
 						Outputs="&quot;.\GeneratedFiles\$(ConfigurationName)\moc_$(InputName).cpp&quot;"
 					/>
@@ -1645,6 +1637,22 @@
 							Name="VCCLCompilerTool"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release64|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release64|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\GeneratedFiles\Release\moc_bl4ckJack_config.cpp"
@@ -1675,6 +1683,22 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug64|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release64|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release64|x64"
 						ExcludedFromBuild="true"
 						>
 						<Tool
@@ -1816,6 +1840,22 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Debug64|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug64|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release64|Win32"
 						ExcludedFromBuild="true"
 						>
@@ -1845,6 +1885,22 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug64|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug64|x64"
 						ExcludedFromBuild="true"
 						>
 						<Tool

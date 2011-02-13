@@ -6,7 +6,6 @@
 #include <QDebug>
 #include <QString>
 
-#include "bl4ckJack_btree.h"
 #include "bl4ckJack_base.h"
 
 #include <algorithm>
@@ -157,7 +156,14 @@ public:
 		this->EnabledModule = "Default Module";
 		this->base = NULL;
 		this->stats.milHashSec = this->stats.totalHashFound = 0;
-		
+
+		hashListDefaultSize=4096;
+	    hashListDefaultIter=1;
+		hashListEntryLength=0;
+		hashList = (unsigned char **)calloc(hashListDefaultSize * hashListDefaultIter, sizeof(unsigned char *));
+		hashListLength=0;
+		memset(hashList, 0, hashListDefaultSize * sizeof(unsigned char *));
+
 	}
 
 	//! BruteForce Deconstructor
@@ -206,8 +212,10 @@ public:
 		
 		}
 
-		// clear our btree
-		this->btree.destroy();
+		// clear our comparison array
+		for(unsigned long i=0; i < hashListLength; i++)
+			free(hashList[i]);
+		free(hashList);
 
 	}
 
@@ -311,53 +319,76 @@ public:
 	}
 
 
-	//! BruteForce Get BinSTree
+	//! BruteForce Get Hash List
 	/**
-	  * BruteForce Get BinSTree
-	  * Get BinSTree (Binary Tree Object)
-	  * @see BruteForce()
-	  * @see ~BruteForce()
-	  * @return BinSTree pointer
+	  * BruteForce Get Hash List
+	  * @see getHashListCount()
+	  * @see hashList
+	  * @see hashListLength
+	  * @return unsigned char **
 	  */
-	BinSTree *getBTree(void) {
-		return & this->btree;
+	unsigned char **getHashList(void) {
+		return this->hashList;
+	}
+
+	//! BruteForce Get Hash List Size
+	/**
+	  * BruteForce Get Hash List Size
+	  * @see getHashList()
+	  * @see ~BruteForce()
+	  * @see hashList
+	  * @see hashListLength
+	  * @return unsigned char **
+	  */
+	unsigned long getHashListCount(void) {
+		return this->hashListLength;
 	}
 	
-	//! BruteForce Add BinSTree
+	//! BruteForce Add Hash List
 	/**
-	  * BruteForce Add BinSTree
-	  * Add BinSTree (Binary Tree Object)
+	  * BruteForce Add Hash List
+	  * Add hash to concurrent list
 	  * @param void pointer to data
 	  * @param size_t length of data
 	  * @see BruteForce()
 	  * @see ~BruteForce()
 	  * @return None
 	  */
-	void addBTree(void *hash, size_t s);
+	void addHash(void *hash, size_t s);
 	
-	//! BruteForce Delete BinSTree
+	//! BruteForce Delete Hash List
 	/**
-	  * BruteForce Delete BinSTree
-	  * Delete BinSTree (Binary Tree Object)
+	  * BruteForce Delete Hash List
+	  * Delete hash from the hashList
 	  * @param void pointer to data
 	  * @param size_t length of data
 	  * @see BruteForce()
 	  * @see ~BruteForce()
 	  * @return None
 	  */
-	void delBTree(void *hash, size_t s);
+	void delHash(void *hash, size_t s);
 	
-	//! BruteForce Find BinSTree
+	//! BruteForce Find Hash
 	/**
-	  * BruteForce Find BinSTree
-	  * Find BinSTree (Binary Tree Object)
+	  * BruteForce Find Hash
+	  * Find hash within the hashList
 	  * @param void pointer to data
 	  * @param size_t length of data
 	  * @see BruteForce()
 	  * @see ~BruteForce()
 	  * @return bool
 	  */
-	bool findBTree(void *hash, size_t s);
+	bool findHash(void *hash, size_t s);
+
+	//! BruteForce Re-Order Hash
+	/**
+	  * BruteForce Re-Order Hash
+	  * Re-order hash via an iterative merge sort algorithm
+	  * @see BruteForce()
+	  * @see ~BruteForce()
+	  * @return void
+	  */
+	void reorderHash();
 
 	//! BruteForce Start
 	/**
@@ -405,7 +436,16 @@ private:
 	BruteForceStats stats;
 	QMutex statsMutex;
 
-	BinSTree btree;
+	//! Internal Hash List used for hash matching
+	unsigned char **hashList;
+	//! Internal Hash List Length used for hash matching
+	unsigned long hashListLength;
+	//! Internal Hash List default Length and growth iteration;
+	unsigned int hashListDefaultSize;
+	//! Internal Hash List default Lenght iterator (this * hashListDefaultSize == total size)
+	unsigned int hashListDefaultIter;
+	//! Internal Default Entry Length, per hash
+	unsigned long hashListEntryLength;
 
 	BOOL stopRunning;
 
@@ -419,9 +459,13 @@ private:
 
 	std::vector< BruteForceMatch > matchList;
 	
+	//! Broken up keyspace list for CPU Bruteforcing
 	std::list <std::pair< long double, long double> > CPUkeyspaceList;
+	
+	//! Broken up keyspace list for GPU Bruteforcing
 	std::list <std::pair< long double, long double> > GPUkeyspaceList;
 
+	//! Module Enabled for bruteforcing
 	std::string EnabledModule;
 
 #ifdef WIN32

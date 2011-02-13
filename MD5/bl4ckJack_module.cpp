@@ -9,7 +9,8 @@ static bl4ckJack_Module module[] = {
 	"MD5",
 	"Tim Shelton <redsand@blacksecurity.org>",
 	"2010-12-15 00:00:00",
-	1.0
+	1.0,
+	false
 };
 
 //! Initialize

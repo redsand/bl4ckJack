@@ -50,10 +50,28 @@ bl4ckJack::bl4ckJack(QWidget *parent, Qt::WFlags flags)
 	setWindowTitle(tr("bl4ckJack "VERSION" - http://blacksecurity.org/bl4ckJack"));
 
 	// gui this
+#if defined(WIN32) || defined(WIN64)
 	moduleProcessDir(tr("."));
+	moduleProcessDir(tr(".\\Modules"));
+#ifdef DEBUG
 	moduleProcessDir(tr("..\\Debug\\"));
+#else
+	moduleProcessDir(tr("..\\Release\\"));
+#endif
+#else
+	moduleProcessDir(tr("."));
+	moduleProcessDir(tr("./Modules"));
+#endif
 
 	bruteThread = new bl4ckJackBrute(this);
+
+	QRect available_geom = QDesktopWidget().availableGeometry();
+	QRect current_geom = frameGeometry();
+	setGeometry(available_geom.width() / 2 - current_geom.width() / 2,
+                        available_geom.height() / 2 - current_geom.height() / 2,
+                        current_geom.width(),
+                        current_geom.height());
+	this->setVisible(true);
 
 }
 
