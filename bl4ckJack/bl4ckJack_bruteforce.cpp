@@ -268,8 +268,6 @@ void *BruteForce::NewThread() {
 
 		int keyspaceIter = 0;
 		std::list<std::pair<long double, long double> >::iterator iter;
-		//for(keyspaceIter = 0; keyspaceIter < keyspaceList->size(); keyspaceIter++) {
-		//for(iter = keyspaceList.begin(); iter != keyspaceList.end(); iter++) {
 		iter = keyspaceList.begin();
 		long double current_iter = 0;
 		int pct=0;
@@ -301,16 +299,18 @@ void *BruteForce::NewThread() {
 			// keep getting 0 through 1st set of second
 			
 			int breakIter=0;
+			final_second = 0;
 			while(cur > 0) {
 				long double sub_amnt = (long double) floor((cpu_amnt / cpuCount));
 				std::pair< long double, long double> pair2;
 				for(int mine = 0; mine < cpuCount; mine++) {
-					pair2.first = ((long double)pair.first + ((mine + breakIter) * sub_amnt));
-					pair2.second = ((long double) pair.first + ((mine + breakIter) * sub_amnt) + sub_amnt + 1);
+					pair2.first = ((long double)pair.first + final_second);
+					pair2.second = ((long double) pair.first + final_second + sub_amnt);
  					CPUkeyspaceList.push_back(pair2);
 					cur -= (pair2.second - pair2.first);
+					final_second += (pair2.second - pair2.first) + 1;
 				}
-				final_second = pair2.second;
+				
 
 				// per GPU
 				// if gpu available {
@@ -318,18 +318,17 @@ void *BruteForce::NewThread() {
 					sub_amnt = (long double) floor((gpu_amnt / gpuCount));
 					//std::pair< long double, long double> pair2;
 					for(int mine = 0; mine < gpuCount; mine++) {
-						pair2.first = ((long double)pair.first + final_second + ((mine + breakIter) * sub_amnt));
-						pair2.second = ((long double) pair.first + final_second + ((mine + breakIter) * sub_amnt) + sub_amnt + 1);
- 						GPUkeyspaceList.push_back(pair2);
+						
+						pair2.first = ((long double)pair.first + final_second);
+						pair2.second = ((long double) pair.first + final_second + sub_amnt);
+						GPUkeyspaceList.push_back(pair2);
 						cur -= (pair2.second - pair2.first);
+						final_second += (pair2.second - pair2.first) + 1;
 					}
-					final_second = pair2.second;
 				}
-
-				breakIter++;
+				current_iter = pair2.second + 1;
 			}
 
-			current_iter = final_second + 1;
 
 			//qDebug() << "First " << (double)keyspaceList->at(keyspaceIter).first << " < " << (double)keyspaceList->at(keyspaceIter).second;
 			if(current_iter >= pair.second) {
@@ -519,7 +518,7 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 				}
 			}
 			CPUkeyspaceList.remove(token); //pop_front();
-			qDebug() << "NEW CPUKeyspaceList size " << CPUkeyspaceList.size();
+			//qDebug() << "NEW CPUKeyspaceList size " << CPUkeyspaceList.size();
 		}
 
 		this->getKeyspace = true;
@@ -623,7 +622,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 		}
 	
 		int threadCount = settings->value("config/gpu_thread_count").toInt();
-		int blockCount = settings->value("config/gpu_block_count").toInt();
+		int maxIterations = settings->value("config/gpu_maximum_loops").toInt();
 		unsigned int shmem = settings->value("config/gpu_max_mem_init").toUInt();
 		// which cuda device are we?
 		devInfo info;
@@ -633,7 +632,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 		// if gpu not enabled on this device, die 		
 		gpu.setDevice(my_gpu);
 		gpu.getDevs(&info);
-		blockCount = gpu.getCoreCount(my_gpu) * info.Devs[my_gpu].deviceProp.multiProcessorCount ;
+		int blockCount = gpu.getCoreCount(my_gpu) * info.Devs[my_gpu].deviceProp.multiProcessorCount ;
 		if (blockCount < 8) blockCount=8; //--- CHECKS THAT BLOCKS ARE AT LEAST ---
 		if (blockCount > 512) blockCount=512; //--- CHECKS THAT BLOCKS ARN'T MORE THAN 512 ---
 
@@ -655,7 +654,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 
 		unsigned long i;
 		for(i=0; i < this->getHashListCount(); i++) {
-			void *entry;
+			void *entry=NULL;
 			if(this->hashListEntryLength > 0) {
 				if(cudaMalloc(&entry, this->hashListEntryLength) != cudaSuccess) 
 					break;
@@ -667,7 +666,8 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 				if(cudaMemcpy(entry, hashList[i], strlen((const char *)hashList[i])+1, cudaMemcpyHostToDevice) != cudaSuccess)
 					break;
 			}
-			if(cudaMemcpy(gpuHashList[i], entry, sizeof(void *), cudaMemcpyHostToDevice) != cudaSuccess)
+			//if(cudaMemcpy(gpuHashList + (i*sizeof(void *)), entry, sizeof(void *), cudaMemcpyDeviceToDevice) != cudaSuccess)
+			if(!entry || cudaMemcpy(gpuHashList[i], entry, sizeof(void *), cudaMemcpyDeviceToDevice) != cudaSuccess)
 				break;
 		}
 	
@@ -707,7 +707,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 
 					// we have our starting and stopping token,
 					// lets batch up our gpu kernel and store results
-					bl4ckJackModules[j]->pfbl4ckJackGenerateGPU(blockCount, threadCount, shmem, gpuStart, gpuStop, 1024, gpuHashList, gpuHashListCount, gpuSuccessMax);
+					bl4ckJackModules[j]->pfbl4ckJackGenerateGPU(blockCount, threadCount, shmem, gpuStart, gpuStop, maxIterations, gpuHashList, gpuHashListCount, gpuSuccessMax);
 					
 					if(t.ElapsedTiming(startTime, t.StopTiming()) >= 1000) {
 						// warn that we're in need of more keys

@@ -164,7 +164,7 @@ ModulesPage	*modPage = NULL;
      QGroupBox *gpuGroup = new QGroupBox(tr("Available System GPUs"));
      gpuList = new QListWidget();
 	 gpuList->setSortingEnabled(1);
-	 gpuList->setFixedHeight(80);
+	 gpuList->setFixedHeight(160);
 
 	 for(i=0; i < g.getDevCount(); i++) {
 		g.getDevInfoStr(i, buf, sizeof(buf)-1);
@@ -189,23 +189,18 @@ ModulesPage	*modPage = NULL;
 	 QGroupBox *cfgGroup = new QGroupBox(tr("GPU Configuration"));
 	 
 // GPUPage for following options:
-	inputRefreshRate = new QLineEdit(settings->value("config/gpu_video_refresh_rate_ms",200.0).toString());
-	inputRefreshRate->setMaximumWidth(32);
-	inputRefreshRate->setMinimumWidth(32);
+	inputMaximumLoops = new QLineEdit(settings->value("config/gpu_maximum_loops",1024).toString());
+	inputMaximumLoops->setMaximumWidth(64);
+	inputMaximumLoops->setMinimumWidth(64);
 
 	inputMaxMemInit = new QLineEdit(settings->value("config/gpu_max_mem_init",8000640).toString());
-	inputMaxMemInit->setMaximumWidth(64);
-	inputMaxMemInit->setMinimumWidth(64);
+	inputMaxMemInit->setMaximumWidth(100);
+	inputMaxMemInit->setMinimumWidth(100);
 
-	inputGPUBlocks = new QLineEdit(settings->value("config/gpu_block_count",8).toString());
-	inputGPUBlocks->setMaximumWidth(32);
-	inputGPUBlocks->setMinimumWidth(32);
+	inputGPUThreads = new QLineEdit(settings->value("config/gpu_thread_count",512).toString());
+	inputGPUThreads->setMaximumWidth(64);
+	inputGPUThreads->setMinimumWidth(64);
 	
-	inputGPUThreads = new QLineEdit(settings->value("config/gpu_thread_count",256).toString());
-	inputGPUThreads->setMaximumWidth(32);
-	inputGPUThreads->setMinimumWidth(32);
-	
-
 	inputEnableHardwareMonitoring = new QCheckBox(tr("Enable GPU Hardware Health Monitoring"));
 	if(settings->value("config/gpu_health_monitor_enabled").toBool()) {
 		inputEnableHardwareMonitoring->setChecked(true);
@@ -220,17 +215,9 @@ ModulesPage	*modPage = NULL;
 	 
 	 cfgLayoutH = new QHBoxLayout;
 	 cfgLayoutH->setAlignment(Qt::AlignLeft);
-	 cfgLayoutH->addWidget(inputRefreshRate);
-	 label = new QLabel(tr("Video Refresh rate (milliseconds)"));
-	 label->setFixedWidth(256);
-	 cfgLayoutH->addWidget(label);
-	 cfgLayout->addLayout(cfgLayoutH);
-
-	 cfgLayoutH = new QHBoxLayout;
-	 cfgLayoutH->setAlignment(Qt::AlignLeft);
-	 cfgLayoutH->addWidget(inputGPUBlocks);
-	 label = new QLabel(tr("Maximum blocks available for use"));
-	 label->setFixedWidth(256);
+	 cfgLayoutH->addWidget(inputMaximumLoops);
+	 label = new QLabel(tr("Maximum GPU kernel iterations before refresh"));
+	 label->setFixedWidth(350);
 	 cfgLayoutH->addWidget(label);
 	 cfgLayout->addLayout(cfgLayoutH);
 
@@ -246,7 +233,7 @@ ModulesPage	*modPage = NULL;
 	 cfgLayoutH->setAlignment(Qt::AlignLeft);
 	 cfgLayoutH->addWidget(inputMaxMemInit);
 	 label = new QLabel(tr("Maximum memory available for allocation (bytes)"));
-	 label->setFixedWidth(256);
+	 label->setFixedWidth(350);
 	 cfgLayoutH->addWidget(label);
 	 cfgLayout->addLayout(cfgLayoutH);
 
@@ -300,12 +287,12 @@ ModulesPage	*modPage = NULL;
 
 // GPUPage for following options:
 	txtMinimumTokens = new QLineEdit(settings->value("config/dc_minimum_tokens",10).toString());
-	txtMinimumTokens->setMaximumWidth(32);
-	txtMinimumTokens->setMinimumWidth(32);
+	txtMinimumTokens->setMaximumWidth(64);
+	txtMinimumTokens->setMinimumWidth(64);
 
 	txtCPUTokenPercentage = new QLineEdit(settings->value("config/dc_cpu_keyspace_pct",5).toString());
-	txtCPUTokenPercentage->setMaximumWidth(32);
-	txtCPUTokenPercentage->setMinimumWidth(32);
+	txtCPUTokenPercentage->setMaximumWidth(64);
+	txtCPUTokenPercentage->setMinimumWidth(64);
 
 
 
@@ -317,8 +304,8 @@ ModulesPage	*modPage = NULL;
 
 	
 	txtTimeout = new QLineEdit(settings->value("config/dc_timeout",2*1000).toString());
-	txtTimeout->setMaximumWidth(32);
-	txtTimeout->setMinimumWidth(32);
+	txtTimeout->setMaximumWidth(64);
+	txtTimeout->setMinimumWidth(64);
 
 	enableSSLCheckBox = new QCheckBox(tr("Enable SSL Encryption"));
 	if(settings->value("config/dc_ssl_encryption").toBool()) {
@@ -344,8 +331,8 @@ ModulesPage	*modPage = NULL;
 	 cfgLayout->addWidget(enableSSLCheckBox);
 
 	inputMaxPasswordSize = new QLineEdit(settings->value("config/dc_max_password_size",16).toString());
-	inputMaxPasswordSize->setMaximumWidth(32);
-	inputMaxPasswordSize->setMinimumWidth(32);
+	inputMaxPasswordSize->setMaximumWidth(64);
+	inputMaxPasswordSize->setMinimumWidth(64);
 
 	 cfgLayoutH = new QHBoxLayout;
 	 cfgLayoutH->setAlignment(Qt::AlignLeft);
@@ -647,10 +634,9 @@ ModulesPage	*modPage = NULL;
 		 settings->setValue(tr("config/gpu_device_%1_enabled").arg(i), (itm->checkState() == Qt::Checked) ? true : false);
 	 }
 
-	 settings->setValue("config/gpu_video_refresh_rate_ms", gpuPage->inputRefreshRate->text().toDouble());
+	 settings->setValue("config/gpu_maximum_loops", gpuPage->inputMaximumLoops->text().toInt());
 	 settings->setValue("config/gpu_max_mem_init", gpuPage->inputMaxMemInit->text().toLong());
 	 settings->setValue("config/gpu_health_monitor_enabled", gpuPage->inputEnableHardwareMonitoring->isChecked());
-	 settings->setValue("config/gpu_block_count", gpuPage->inputGPUBlocks->text().toLong());
 	 settings->setValue("config/gpu_thread_count", gpuPage->inputGPUThreads->text().toLong());
 
 

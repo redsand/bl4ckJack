@@ -32,6 +32,7 @@ void bl4ckJackBrute::doWork() {
 	// startup our brute thread
 
 	QString status;
+	double pct = 0.0;
 	// calculate our keyspace
 	
 	if(this->listenOnly) {
@@ -67,6 +68,7 @@ void bl4ckJackBrute::doWork() {
 
 	emit updateBruteStatus(3, 0, tr("Total passwords to calculate (%1x%2): %3").arg(settings->value("config/charset").toString().length()).arg(keyLen).arg((double)maxVal));
 
+	msleep(1000);
 	// connect to list of hosts for bruting
 	QStringList serverList = settings->value("config/dc_hosts").toStringList();
 	QStringList successfulServerList;
@@ -105,7 +107,8 @@ void bl4ckJackBrute::doWork() {
 		try {
 			client = new RcfClient<RemoteService>( RCF::TcpEndpoint(serverList[i].toUtf8().constData(), DEFAULT_PORT) );
 		} catch(const RCF::Exception &e) {
-			emit updateBruteStatus(2, (float)((i+1) / serverList.count()) * 100, tr("Failed to connect to remote service %1,%2").arg(serverList[i]).arg(e.getErrorString().c_str()));
+			pct = (i + 1) / serverList.count() * 100.0;
+			emit updateBruteStatus(2, pct, tr("Failed to connect to remote service %1,%2").arg(serverList[i]).arg(e.getErrorString().c_str()));
 			continue;
 		}
 
@@ -119,7 +122,8 @@ void bl4ckJackBrute::doWork() {
 				filters.push_back(RCF::FilterPtr( new RCF::ZlibStatefulCompressionFilter()));
 				iter++;
 			} catch(const RCF::Exception &e) {
-				emit updateBruteStatus(2, (float)((i+1) / serverList.count()) * 100, QString("Failed to add zlib compression filter to remote service %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
+				pct = (i + 1) / serverList.count() * 100.0;
+				emit updateBruteStatus(2, pct, QString("Failed to add zlib compression filter to remote service %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
 				continue;
 			}
 		}
@@ -133,7 +137,8 @@ void bl4ckJackBrute::doWork() {
 				)));
 				iter++;
 			} catch(const RCF::Exception &e) {
-				emit updateBruteStatus(2, (float)((i+1) / serverList.count()) * 100, QString("Failed to add encryption filter to remote service %1, %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
+				pct = (i + 1) / serverList.count() * 100.0;
+				emit updateBruteStatus(2, pct, QString("Failed to add encryption filter to remote service %1, %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
 				continue;
 			}
 		}
@@ -143,7 +148,8 @@ void bl4ckJackBrute::doWork() {
 				client->getClientStub().requestTransportFilters(filters);
 			}
 		} catch(const RCF::Exception &e) {
-			emit updateBruteStatus(2, (float)((i+1) / serverList.count()) * 100, QString("Failed to add filters to remote service %1, %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
+			pct = (i + 1) / serverList.count() * 100.0;
+			emit updateBruteStatus(2, pct, QString("Failed to add filters to remote service %1, %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
 			continue;
 		}
 
@@ -152,7 +158,8 @@ void bl4ckJackBrute::doWork() {
 			client->getClientStub().setRequestUserData(mymodule);
 			client->initModule();
 		} catch(const RCF::Exception &e) {
-			emit updateBruteStatus(2, (float)((i+1) / serverList.count()) * 100, QString("Failed to initialize our module %1 with remote service %2, %3").arg(this->EnabledModule).arg(serverList[i]).arg(e.getErrorString().c_str()));	
+			pct = (i + 1) / serverList.count() * 100.0;
+			emit updateBruteStatus(2, pct, QString("Failed to initialize our module %1 with remote service %2, %3").arg(this->EnabledModule).arg(serverList[i]).arg(e.getErrorString().c_str()));	
 			continue;
 		}
 
@@ -161,7 +168,8 @@ void bl4ckJackBrute::doWork() {
 			client->getClientStub().setRequestUserData(mychars);
 			client->initKeyspace();
 		} catch(const RCF::Exception &e) {
-			emit updateBruteStatus(2, (float)((i+1) / serverList.count()) * 100, QString("Failed to initialize our keyspace with remote service %1, %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
+			pct = (i + 1) / serverList.count() * 100.0;
+			emit updateBruteStatus(2, pct, QString("Failed to initialize our keyspace with remote service %1, %2").arg(serverList[i]).arg(e.getErrorString().c_str()));	
 			continue;
 		}
 
@@ -192,10 +200,12 @@ void bl4ckJackBrute::doWork() {
 		return;
 	}
 
-	for(i = 0; i < successfulServerList.count(); i++) {
+	int serverListCount = successfulServerList.count();
+	for(i = 0; i < serverListCount; i++) {
 		
 		int j=0;
-		for(j=0; j < bJMain->tblHashView->getList().count(); j++) {
+		int hashCount=bJMain->tblHashView->getList().count();
+		for(j=0; j < hashCount; j++) {
 			QPair<QString, QString> pair = bJMain->tblHashView->getList().at(j);
 			
 			try {
@@ -203,38 +213,48 @@ void bl4ckJackBrute::doWork() {
 					std::string hash(pair.second.toAscii().constData());
 					serverConList[i]->getClientStub().setRequestUserData(hash);
 					serverConList[i]->initHash();
-					if(j % 10 == 0)
-					emit updateBruteStatus(3, (float)((j+1) / bJMain->tblHashView->getList().count()) * 100, tr("Distributing hash %1 to remote host %2.").arg(j).arg(serverList[i]));
+					if(j % 10 == 0) {
+						pct = (j + 1) * (i + 1);
+						pct = pct / (hashCount * serverListCount);
+						pct *= 100.0;
+						emit updateBruteStatus(3, pct, tr("Distributing hash %1 to remote host %2.").arg(j).arg(serverList[i]));
+					}
 				}
 			} catch(const RCF::Exception &e) {
-				emit updateBruteStatus(2, (float)((j+1) / bJMain->tblHashView->getList().count()) * 100, QString("Failed to initialize our hash %1 with remote service %2, %3").arg((char *)pair.second.toAscii().constData()).arg(serverList[i]).arg(e.getErrorString().c_str()));	
+				pct = (j + 1) * (i + 1);
+				pct = pct / (hashCount * serverListCount);
+				pct *= 100.0;
+				emit updateBruteStatus(2, pct, QString("Failed to initialize our hash %1 with remote service %2, %3").arg((char *)pair.second.toAscii().constData()).arg(serverList[i]).arg(e.getErrorString().c_str()));	
 				continue;
 			}
 		}
-		emit updateBruteStatus(3, 100, tr("Distributing %1 total hashes to remote host %2.").arg(j).arg(serverList[i]));
+		emit updateBruteStatus(3, 0, tr("Distributing %1 total hashes to remote host %2.").arg(j).arg(serverList[i]));
 	}
 
 	for(i = 0; i < successfulServerList.count(); i++) {
-		
-		emit updateBruteStatus(3, ((i+1) / successfulServerList.count()) * 100, tr("Distributing tokens #%1 to remote host %2.").arg(tokeniter).arg(successfulServerList[i]));
+		pct = ((i + 1) * (tokeniter + 1));
+		pct = pct / (successfulServerList.count() * (tokencount + 1));
+		pct *= 100.0;
+		emit updateBruteStatus(3, pct, tr("Distributing tokens #%1 to remote host %2.").arg(tokeniter).arg(successfulServerList[i]));
 		try {
 			if(serverConList[i]->submitKeyspace(tokeniter * pertoken, ((tokeniter + 1) * pertoken) - 1)) {
 				tokeniter++;
 			}
 		} catch(const RCF::Exception &e) {
-			emit updateBruteStatus(2, (float)((i+1) / successfulServerList.count()) * 100, tr("Failed to initialize our token #%1 with remote service %2, %3").arg(tokeniter).arg(serverList[i]).arg(e.getErrorString().c_str()));
+			emit updateBruteStatus(2, pct, tr("Failed to initialize our token #%1 with remote service %2, %3").arg(tokeniter).arg(serverList[i]).arg(e.getErrorString().c_str()));
 			continue;
 		}
 	}
 
 	// start our bruteforce for each
 
-	for(i = 0; i < successfulServerList.count(); i++) {
-		emit updateBruteStatus(3, (float)((i+1) / successfulServerList.count()) * 100, tr("Starting brute force with remote host %1.").arg(successfulServerList[i]));
+	for(i = 0; i < serverListCount; i++) {
+		pct = ((i+1) / serverListCount) * 100.0;
+		emit updateBruteStatus(3, pct, tr("Starting brute force with remote host %1.").arg(successfulServerList[i]));
 		try {
 			serverConList[i]->start();
 		} catch(const RCF::Exception &e) {
-			emit updateBruteStatus(2, (float)((i+1) / successfulServerList.count()) * 100, tr("Failed to start brute force with remote host %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));
+			emit updateBruteStatus(2, pct, tr("Failed to start brute force with remote host %1: %2").arg(serverList[i]).arg(e.getErrorString().c_str()));
 			continue;
 		}
 	}
@@ -258,7 +278,7 @@ void bl4ckJackBrute::doWork() {
 	int retry=1;
 
 	qint64 hashFoundPrev = 0;
-	double pct = 0.0;
+	
 	long double seconds_left = 0.0;
 	int days = 0;
 	int hours = 0;
@@ -347,11 +367,14 @@ void bl4ckJackBrute::doWork() {
 			minutes = (int) fmod(seconds_left / 60, 60);
 			seconds = (int) fmod(seconds_left, 60);
 			//qDebug() << days << " days, " << hours << ":" << minutes << ":" << seconds;
-			pct = ((maxVal - keysLeft) / maxVal) * 100.0;
-			if(pct < 0)
-				pct = 0;
+			
+
 			//qDebug() << " pct: << " << pct << " ( maxVal (" << (double)maxVal << ") - keysLeft(" << (double)keysLeft << ") / maxVal(" << (double)maxVal << ") ) * 100";	
 		}
+
+		pct = (maxVal - keysLeft);
+		pct = pct / maxVal;
+		pct *= 100.0;
 
 		if(pps > 0 || totalHashFound > hashFoundPrev) {
 			hashFoundPrev = totalHashFound;
@@ -369,7 +392,7 @@ void bl4ckJackBrute::doWork() {
 	serverConList.clear();
 
 	if(keysLeft <= 0) {
-		emit updateBruteStatus(3, pct, tr("Bruteforcing  %1 available nodes."));
+		emit updateBruteStatus(3, pct, tr("Bruteforcing  %1 available nodes completed successfully."));
 	}
 	distributedServer->terminate();
 }

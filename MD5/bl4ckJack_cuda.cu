@@ -60,14 +60,15 @@ __device__ size_t my_strlen(const char *c) {
 	return i;
 }
 
-__device__ int my_memcmp ( const void *s1V, const void *s2V, int n )
+__device__ int my_memcmp ( unsigned char *s1, unsigned char *s2, int n )
 {
    int res;
    unsigned char a0;
    unsigned char b0;
+   /*
    unsigned char* s1 = (unsigned char*)s1V;
    unsigned char* s2 = (unsigned char*)s2V;
-
+	*/
    while (n != 0) {
       a0 = s1[0];
       b0 = s2[0];
@@ -183,7 +184,7 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 		
 		for(ihash=0; ihash < *gpuHashListCount; ihash++) {
 			
-			if(!my_memcmp(retBuf, gpuHashList[ihash], 16)) {
+			if(!my_memcmp(retBuf, (unsigned char *)gpuHashList[ihash], 16)) {
 				match=1;
 				break;
 			}

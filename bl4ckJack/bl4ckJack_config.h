@@ -94,23 +94,19 @@
       * @return None
 	  */
 	 ~GPUPage() {
-		 delete inputRefreshRate;
+		 delete inputMaximumLoops;
 		 delete inputMaxMemInit;
-		 delete inputGPUBlocks;
 		 delete inputGPUThreads;
 		 delete inputEnableHardwareMonitoring;
 		 delete gpuList;
 	 }
 
-	 //! Input Refresh Rate
-	QLineEdit *inputRefreshRate;
+	 //! Input Maximum Loops Within GPU Kernel
+	QLineEdit *inputMaximumLoops;
 	
 	//! Maximum Memory Limit
 	QLineEdit *inputMaxMemInit;
-	
-	//! GPU Block Count
-	QLineEdit *inputGPUBlocks;
-	
+
 	//! GPU Thread Count
 	QLineEdit *inputGPUThreads;
 	
