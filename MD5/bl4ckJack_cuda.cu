@@ -11,50 +11,24 @@
 __device__ __constant__ char __align__(16) gpu_charset[MAX_CHARSET];
 __device__ __constant__ unsigned int gpu_charset_len;
 
-__device__ __align__(16) char **hashList=NULL;
+__device__ __constant__ char __align__(16) **hashList=NULL;
 __device__ unsigned long hashListCount=0;
 
 __device__ unsigned long matchCount;
-__device__ __align__(16) char matchHashList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
-__device__ __align__(16) char matchPassList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
+__device__ char __align__(16) matchHashList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
+__device__ char __align__(16) matchPassList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
 
 // init our charset
 // init our hashes for matching as well
 //! Initialize GPU for Bruteforcing
-extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charsetLen, void **hashArray, unsigned long hashArrayLen, unsigned int hashEntryLen) {
+extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charsetLen) {
 	
 	if(cudaMemcpyToSymbol("gpu_charset", charset, charsetLen+1, 0, cudaMemcpyHostToDevice) != cudaSuccess) {
-			return;
-	}
-
-	if(cudaMemcpyToSymbol("gpu_charset_len", &charsetLen, sizeof(charsetLen)) != cudaSuccess) {
-			return;
-	}
-
-	if(cudaMalloc((void **)&hashList, hashArrayLen * sizeof(char *)) != cudaSuccess) {
 		return;
 	}
 
-	unsigned long i;
-	for(i=0; i < hashListCount; i++) {
-		void *entry;
-		if(hashEntryLen > 0) {
-			if(cudaMalloc(&entry, hashEntryLen) != cudaSuccess) 
-				break;
-			if(cudaMemcpy(entry, hashArray[i], hashEntryLen, cudaMemcpyHostToDevice) != cudaSuccess)
-				break;
-		} else {
-			if(cudaMalloc(&entry, strlen((const char *)hashArray[i])+1) != cudaSuccess) 
-				break;
-			if(cudaMemcpy(entry, hashArray[i], strlen((const char *)hashArray[i])+1, cudaMemcpyHostToDevice) != cudaSuccess)
-				break;
-		}
-		if(cudaMemcpy(&hashList[i], entry, sizeof(void *), cudaMemcpyHostToDevice) != cudaSuccess)
-			break;
-	}
-	
-	if(cudaMemcpyToSymbol("hashListCount", &hashListCount, sizeof(hashListCount)) != cudaSuccess) {
-			return;
+	if(cudaMemcpyToSymbol("gpu_charset_len", &charsetLen, sizeof(charsetLen)) != cudaSuccess) {
+		return;
 	}
 
 	if(cudaMemset(matchHashList, 0, MAX_PASSCOUNT * MAX_PASSLENGTH) != cudaSuccess) {
@@ -70,11 +44,12 @@ extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charse
 
 //! Free initialized memory
 extern "C" __declspec(dllexport) void bl4ckJackFreeGPU(void) {
-	//destroy(bTreeSearch);
+	/*
 	unsigned long i;
 	for(i=0; i < hashListCount; i++)
 		cudaFree(hashList[i]);
 	cudaFree(hashList);
+	*/
 }
 
 // need to allocate max charset len +1 * index so our kernel can calculate our string
@@ -109,7 +84,7 @@ __device__ int my_memcmp ( const void *s1V, const void *s2V, int n )
 // kernel will take base value (can calc or assign value to array)
 // each thread = compute hash and check btree for result
 // each thread will += until its id > stopping key
-extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(double *start, double *stop, int maxIterations, char **successList, int *maxSuccess) {
+extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(double *start, double *stop, int maxIterations,  char **gpuHashList, int *gpuHashListCount, int *maxSuccess) {
     
     //int index = (blockDim.x * blockIdx.x) + threadIdx.x; //threadIdx.x + blockIdx * blockDim.x;
 	int index = (gridDim.x*blockIdx.y + blockIdx.x)*blockDim.x + threadIdx.x; // assuming blockDim.y = 1 and threadIdx.y = 0, always
@@ -117,7 +92,6 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
     char input[256]; // max len of our passwd
     unsigned char retBuf[64];
     int i=0;
-	int myMaxSuccess=*maxSuccess;
     // prime into shared regional memory
     // because i was told this is faster than device memory
     __shared__ char localcharset[256];
@@ -134,8 +108,6 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 		localcharset[gpu_charset_len] = '\0';
 
 	}
-	
-	*maxSuccess = 0;
 
 	//Wait for all cache filling to finish
 	__syncthreads();
@@ -209,9 +181,9 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 		unsigned long ihash=0;
 		int match=0;
 		
-		for(ihash=0; ihash < hashListCount; ihash++) {
+		for(ihash=0; ihash < *gpuHashListCount; ihash++) {
 			
-			if(!my_memcmp(retBuf, hashList[ihash], 16)) {
+			if(!my_memcmp(retBuf, gpuHashList[ihash], 16)) {
 				match=1;
 				break;
 			}
@@ -220,8 +192,7 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 
 		if(match==1)
 		{	
-			//cudaMemcpy(matchHashList[matchCount], retBuf, 16, cudaMemcpyDeviceToDevice);
-			
+
 			for(i=0; i < 16; i++) {
 				matchHashList[matchCount][i] = retBuf[i];
 			}
@@ -232,17 +203,15 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 			}
 			matchHashList[matchCount][i] = '\0';
 			
-			//cudaMemcpy(matchPassList[matchCount], input, inputLen + 1, cudaMemcpyDeviceToDevice);
-
-			(*maxSuccess)++;
 			matchCount++;
 	
-			if(*maxSuccess + 1 > myMaxSuccess)
+			if(matchCount + 1 > *maxSuccess)
 				break;			
 		}
 
 		//if(threadIdx.x == 0)
-		*start = iter;
+		if(*start < iter)
+			*start = iter;
 
 		if(++count > maxIterations)
 			break;
@@ -253,31 +222,17 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 
 // end our init and free all our memory, including btree, etc.
 
-extern "C" __declspec(dllexport) void bl4ckJackGenerateGPU(int block, int thread, int shmem, double *start, double *stop, char **successList, int *maxSuccess) {
+extern "C" __declspec(dllexport) void bl4ckJackGenerateGPU(int block, int thread, int shmem, double *start, double *stop, int maxIterations, char **gpuHashList, int *gpuHashListCount, int *matchCount) {
 
-	int maxIterations = 256; //32, 64, 128, 256, 512, 1024
-
-	int mymatchCount = 0;
-	if(cudaMemcpyToSymbol("matchCount", &mymatchCount, sizeof(mymatchCount)) != cudaSuccess) {
-			return;
-	}
-	
-	//bl4ckJackGenerateGPUInternal<<<block,thread,shmem>>>(start, stop, maxIterations, successList, maxSuccess);
-	bl4ckJackGenerateGPUInternal<<<block,thread>>>(start, stop, maxIterations, successList, maxSuccess);
+	//bl4ckJackGenerateGPUInternal<<<block,thread,shmem>>>(start, stop, maxIterations, matchCount);
+	bl4ckJackGenerateGPUInternal<<<block,thread>>>(start, stop, maxIterations, gpuHashList, gpuHashListCount, matchCount);
 	
 	cudaThreadSynchronize();
+
 	if(cudaGetLastError() != cudaSuccess) {
 		OutputDebugString("CUDA Error: ");
 		OutputDebugString(cudaGetErrorString(cudaGetLastError()));
 		OutputDebugString("\n");
-	}
-
-	if(cudaMemcpyFromSymbol(&mymatchCount, "matchCount", sizeof(mymatchCount), 0, cudaMemcpyDeviceToHost) != cudaSuccess) {
-			return;
-	}
-	
-	if(mymatchCount > 0) {
-		mymatchCount = mymatchCount;
 	}
 
 	// copy success to and from and update passworsd per second

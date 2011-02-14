@@ -61,12 +61,12 @@ extern "C" MY_EXPORT void bl4ckJackGenerate(unsigned char *, size_t *, unsigned 
 typedef void (*fbl4ckJackGenerate)(unsigned char *, size_t *, unsigned char *, size_t);
 
 //! Initialize GPU for bruteforcing
-extern "C" MY_EXPORT void bl4ckJackInitGPU(char *, int, void **, unsigned long , unsigned int);
-typedef void (*fbl4ckJackInitGPU)(char *, int, void **, unsigned long , unsigned int);
+extern "C" MY_EXPORT void bl4ckJackInitGPU(char *, int);
+typedef void (*fbl4ckJackInitGPU)(char *, int);
 
 //! GPU Bruteforcing Kernel Call (match happens inside)
-extern "C" MY_EXPORT void bl4ckJackGenerateGPU(int, int, int, double *start, double *stop, char **successList, int *);
-typedef void (*fbl4ckJackGenerateGPU)(int, int, int, double *start, double *stop, char **successList, int *);
+extern "C" MY_EXPORT void bl4ckJackGenerateGPU(int, int, int, double *start, double *stop, int, unsigned char **, unsigned long *, int *);
+typedef void (*fbl4ckJackGenerateGPU)(int, int, int, double *start, double *stop, int,  unsigned char **, unsigned long *, int *);
 
 //! Free initialized GPU memory
 extern "C" MY_EXPORT void bl4ckJackFreeGPU(void);

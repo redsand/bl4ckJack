@@ -638,7 +638,40 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 		if (blockCount > 512) blockCount=512; //--- CHECKS THAT BLOCKS ARN'T MORE THAN 512 ---
 
 
-		bl4ckJackModules[j]->pfbl4ckJackInitGPU((char *)this->base->getCharset(), this->base->getCharsetLength(), (void **)hashList, hashListLength, (unsigned int) this->hashListEntryLength);
+		bl4ckJackModules[j]->pfbl4ckJackInitGPU((char *)this->base->getCharset(), this->base->getCharsetLength());
+
+
+		/**< create our hashList in GPU Memory */
+		unsigned char **gpuHashList=NULL;
+		unsigned long *gpuHashListCount=NULL;
+
+		if(cudaMalloc((void **)&gpuHashList, this->getHashListCount() * sizeof(unsigned char *)) != cudaSuccess) {
+			break; //return 0;
+		}
+	
+		if(cudaMalloc((void **)&gpuHashListCount, sizeof(unsigned long)) != cudaSuccess) {
+			break; //return 0;
+		}
+
+		unsigned long i;
+		for(i=0; i < this->getHashListCount(); i++) {
+			void *entry;
+			if(this->hashListEntryLength > 0) {
+				if(cudaMalloc(&entry, this->hashListEntryLength) != cudaSuccess) 
+					break;
+				if(cudaMemcpy(entry, hashList[i], this->hashListEntryLength, cudaMemcpyHostToDevice) != cudaSuccess)
+					break;
+			} else {
+				if(cudaMalloc(&entry, strlen((const char *)hashList[i])+1) != cudaSuccess) 
+					break;
+				if(cudaMemcpy(entry, hashList[i], strlen((const char *)hashList[i])+1, cudaMemcpyHostToDevice) != cudaSuccess)
+					break;
+			}
+			if(cudaMemcpy(gpuHashList[i], entry, sizeof(void *), cudaMemcpyHostToDevice) != cudaSuccess)
+				break;
+		}
+	
+
 		
 		while(!stopRunning && !GPUkeyspaceList.empty()) {
 			// load our charset and keyspace and begin bruteing
@@ -665,9 +698,8 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 				cudaMemcpy(gpuStop, &token.second, sizeof(double), cudaMemcpyHostToDevice);
 
 				char **gpuhashSuccess=NULL; 
-				int hashSuccessMax=1024, *gpuSuccessMax=NULL;
+				int hashSuccessMax=0, *gpuSuccessMax=NULL;
 
-				cudaMalloc(&gpuhashSuccess, hashSuccessMax);
 				cudaMalloc(&gpuSuccessMax, sizeof(hashSuccessMax));
 				cudaMemcpy(gpuSuccessMax, &hashSuccessMax, sizeof(int), cudaMemcpyHostToDevice);
 
@@ -675,17 +707,14 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 
 					// we have our starting and stopping token,
 					// lets batch up our gpu kernel and store results
-					bl4ckJackModules[j]->pfbl4ckJackGenerateGPU(blockCount, threadCount, shmem, gpuStart, gpuStop, gpuhashSuccess, gpuSuccessMax);
+					bl4ckJackModules[j]->pfbl4ckJackGenerateGPU(blockCount, threadCount, shmem, gpuStart, gpuStop, 1024, gpuHashList, gpuHashListCount, gpuSuccessMax);
 					
 					if(t.ElapsedTiming(startTime, t.StopTiming()) >= 1000) {
 						// warn that we're in need of more keys
-						int mymatchCount=0;	
+						
 						cudaMemcpy(&token.first, gpuStart, sizeof(double), cudaMemcpyDeviceToHost);
 						cudaMemcpy(&token.second, gpuStop, sizeof(double), cudaMemcpyDeviceToHost);
-						cudaMemcpy(&hashSuccessMax, gpuSuccessMax, sizeof(int), cudaMemcpyDeviceToHost);
-						if(cudaMemcpyFromSymbol(&mymatchCount, "matchCount", sizeof(mymatchCount), 0, cudaMemcpyDeviceToHost) != cudaSuccess) {
-								continue;
-						}
+						cudaMemcpy(&hashFound, gpuSuccessMax, sizeof(int), cudaMemcpyDeviceToHost);				
 						
 						qDebug() << "First GPU token: " << (double)token.first << " Second: " << (double)token.second;
 						if(setKey) {
@@ -702,42 +731,43 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 						}
 
 						// report any matches
-						if(hashSuccessMax > 0 && mymatchCount > 0) {
+						if(hashFound > 0 ) {
 						
 							char **localHash = (char **) calloc(hashSuccessMax, sizeof(char *));
 							memset(localHash, 0, hashSuccessMax * sizeof(char *));
 							char **localPass = (char **) calloc(hashSuccessMax, sizeof(char *));
 							memset(localPass, 0, hashSuccessMax * sizeof(char *));
-							/*
 							
-							for(int i=0; i < hashSuccessMax; i++) {
+							for(int i=0; i < hashFound; i++) {
 								localHash[i] = (char *)malloc(512+1);
 								memset(localHash[i], 0, 512+1);
-								if(cudaMemcpyFromSymbol(&localHash[i], "matchHashList", 512, i, cudaMemcpyDeviceToHost) != cudaSuccess) {
+								if(cudaMemcpyFromSymbol(&localHash[i], "matchHashList", this->hashListEntryLength, i, cudaMemcpyDeviceToHost) != cudaSuccess) {
 									continue;
 								}
-								localPass[i] = (char *)malloc(512+1);
-								memset(localPass[i], 0, 512+1);
+								localPass[i] = (char *)malloc(this->hashListEntryLength+1);
+								memset(localPass[i], 0, this->hashListEntryLength+1);
 
-								if(cudaMemcpyFromSymbol(&localHash[i], "matchPassList", 512, i, cudaMemcpyDeviceToHost) != cudaSuccess) {
+								if(cudaMemcpyFromSymbol(&localHash[i], "matchPassList", this->hashListEntryLength, i, cudaMemcpyDeviceToHost) != cudaSuccess) {
 									continue;
 								}
 				
 								BruteForceMatch match;
-								char *hex = bintohex(retLen, (char *)localHash[i]);
-								match.hash = std::string(hex);
-								
+								if(bl4ckJackModules[j]->pfbl4ckJackInfo()->isSalted) {
+									match.hash = std::string((char *)localHash[i]);
+								} else {
+									char *hex = bintohex(retLen, (char *)localHash[i]);
+									match.hash = std::string(hex);
+									free(hex);
+								}	
 								match.password = std::string((char *)localPass[i]);
 								this->matchList.push_back(match);
-								qDebug() << "successfully broke password " << localPass[i] << " with result: " << hex;
-								free(hex);
-								
+								qDebug() << "successfully broke password " << match.hash.c_str() << " with result: " << match.password.c_str();
 							}
 							for(int i=0; i < hashSuccessMax; i++) {
 								free(localHash[i]);
 								free(localPass[i]);
 							}
-							*/
+							
 							free(localHash);
 							free(localPass);
 							
@@ -759,20 +789,25 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 						cudaMemcpy(gpuStart, &token.first, sizeof(double), cudaMemcpyHostToDevice);
 						cudaMemcpy(gpuStop, &token.second, sizeof(double), cudaMemcpyHostToDevice);
 
-						hashSuccessMax=1024;
-						cudaMemcpy(gpuSuccessMax, &hashSuccessMax, sizeof(int), cudaMemcpyHostToDevice);
+						cudaMemcpy(gpuSuccessMax, &hashFound, sizeof(int), cudaMemcpyHostToDevice);
 					}
 				}
 
 				cudaFree(gpuStart);
 				cudaFree(gpuStop);
-				cudaFree(gpuhashSuccess);
 				cudaFree(gpuSuccessMax);
 			}
 			GPUkeyspaceList.remove(token);
 		}
 
+		
 		bl4ckJackModules[j]->pfbl4ckJackFreeGPU();
+
+		for(i=0; i < this->getHashListCount(); i++) {
+			cudaFree(gpuHashList[i]);
+		}
+		cudaFree(gpuHashList);
+		cudaFree(gpuHashListCount);
 
 		this->getKeyspace = true;
 		if(stopRunning) break;
