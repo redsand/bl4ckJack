@@ -463,7 +463,7 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 				size_t retLen=0;
 				BOOL setKey = TRUE;
 	
-				while(!stopRunning && token.first <= token.second) {
+				while(!stopRunning && token.first < token.second) {
 					this->base->ToBase(token.first, (char *)bruteStr, MAX_BRUTE_CHARS);
 					bl4ckJackModules[j]->pfbl4ckJackGenerate((unsigned char *)results, &retLen, (unsigned char *)bruteStr, strlen((const char *)bruteStr));
 		
@@ -566,6 +566,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 	Timer t;
 	int hashFound = 0;
 
+
 	// get our thread/cpu #
 	BruteForce *self = (BruteForce*) param;
 
@@ -644,35 +645,41 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 		unsigned char **gpuHashList=NULL;
 		unsigned long *gpuHashListCount=NULL;
 
-		if(cudaMalloc((void **)&gpuHashList, this->getHashListCount() * sizeof(unsigned char *)) != cudaSuccess) {
-			break; //return 0;
-		}
+		unsigned long hashListCount = this->getHashListCount();
 	
 		if(cudaMalloc((void **)&gpuHashListCount, sizeof(unsigned long)) != cudaSuccess) {
 			break; //return 0;
 		}
+		
+		if(cudaMemcpy(gpuHashListCount, &hashListCount, sizeof(unsigned long), cudaMemcpyHostToDevice) != cudaSuccess)
+					break;
+#define MAX_HASH_LEN		512
+
+		if(cudaMalloc((void **)&gpuHashList, (hashListCount+1) * sizeof(char *)) != cudaSuccess) {
+			break; //return 0;
+		}
 
 		unsigned long i;
-		for(i=0; i < this->getHashListCount(); i++) {
-			void *entry=NULL;
+		char **hostArray = (char **)calloc(hashListCount, sizeof(char *));
+		for(i=0; i < hashListCount; i++) {
 			if(this->hashListEntryLength > 0) {
-				if(cudaMalloc(&entry, this->hashListEntryLength) != cudaSuccess) 
+				if(cudaMalloc(&hostArray[i], this->hashListEntryLength*2) != cudaSuccess) 
 					break;
-				if(cudaMemcpy(entry, hashList[i], this->hashListEntryLength, cudaMemcpyHostToDevice) != cudaSuccess)
+				if(cudaMemcpy(hostArray[i], hashList[i], this->hashListEntryLength, cudaMemcpyHostToDevice) != cudaSuccess)
 					break;
 			} else {
-				if(cudaMalloc(&entry, strlen((const char *)hashList[i])+1) != cudaSuccess) 
+				if(cudaMalloc((void **)&hostArray[i], strlen((const char *)hashList[i])+1) != cudaSuccess) 
 					break;
-				if(cudaMemcpy(entry, hashList[i], strlen((const char *)hashList[i])+1, cudaMemcpyHostToDevice) != cudaSuccess)
+				if(cudaMemcpy(hostArray[i], hashList[i], strlen((const char *)hashList[i])+1, cudaMemcpyHostToDevice) != cudaSuccess)
 					break;
 			}
-			//if(cudaMemcpy(gpuHashList + (i*sizeof(void *)), entry, sizeof(void *), cudaMemcpyDeviceToDevice) != cudaSuccess)
-			if(!entry || cudaMemcpy(gpuHashList[i], entry, sizeof(void *), cudaMemcpyDeviceToDevice) != cudaSuccess)
-				break;
 		}
-	
 
-		
+		if(cudaMemcpy(gpuHashList, hostArray, hashListCount*sizeof(char *), cudaMemcpyHostToDevice) != cudaSuccess)
+			break;
+
+		free(hostArray);
+
 		while(!stopRunning && !GPUkeyspaceList.empty()) {
 			// load our charset and keyspace and begin bruteing
 
@@ -703,7 +710,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 				cudaMalloc(&gpuSuccessMax, sizeof(hashSuccessMax));
 				cudaMemcpy(gpuSuccessMax, &hashSuccessMax, sizeof(int), cudaMemcpyHostToDevice);
 
-				while(!stopRunning && token.first <= token.second) {
+				while(!stopRunning && (token.first < token.second)) {
 
 					// we have our starting and stopping token,
 					// lets batch up our gpu kernel and store results

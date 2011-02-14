@@ -11,9 +11,6 @@
 __device__ __constant__ char __align__(16) gpu_charset[MAX_CHARSET];
 __device__ __constant__ unsigned int gpu_charset_len;
 
-__device__ __constant__ char __align__(16) **hashList=NULL;
-__device__ unsigned long hashListCount=0;
-
 __device__ unsigned long matchCount;
 __device__ char __align__(16) matchHashList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
 __device__ char __align__(16) matchPassList[MAX_PASSCOUNT][MAX_PASSLENGTH + 1];
@@ -44,19 +41,16 @@ extern "C" __declspec(dllexport) void bl4ckJackInitGPU(char *charset, int charse
 
 //! Free initialized memory
 extern "C" __declspec(dllexport) void bl4ckJackFreeGPU(void) {
-	/*
-	unsigned long i;
-	for(i=0; i < hashListCount; i++)
-		cudaFree(hashList[i]);
-	cudaFree(hashList);
-	*/
+	
 }
 
 // need to allocate max charset len +1 * index so our kernel can calculate our string
 __device__ size_t my_strlen(const char *c) {
 	if(!c) return 0;
-	register unsigned int i=0;
-	while(c[i++]);
+	register size_t i=0;
+	while(c[i]) {
+		i++;
+	}
 	return i;
 }
 
@@ -88,11 +82,12 @@ __device__ int my_memcmp ( unsigned char *s1, unsigned char *s2, int n )
 extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(double *start, double *stop, int maxIterations,  char **gpuHashList, int *gpuHashListCount, int *maxSuccess) {
     
     //int index = (blockDim.x * blockIdx.x) + threadIdx.x; //threadIdx.x + blockIdx * blockDim.x;
-	int index = (gridDim.x*blockIdx.y + blockIdx.x)*blockDim.x + threadIdx.x; // assuming blockDim.y = 1 and threadIdx.y = 0, always
-
+	//int index = (gridDim.x*blockIdx.y + blockIdx.x)*blockDim.x + threadIdx.x; // assuming blockDim.y = 1 and threadIdx.y = 0, always
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	MD5_CTX ctx;
     char input[256]; // max len of our passwd
-    unsigned char retBuf[64];
-    int i=0;
+    unsigned char retBuf[32];
+ 
     // prime into shared regional memory
     // because i was told this is faster than device memory
     __shared__ char localcharset[256];
@@ -101,19 +96,22 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 	if(threadIdx.x == 0)
 	{
 		// load charset/len from gpu mem
-		i=0;
-		while(gpu_charset[i]) {
-			localcharset[i] = gpu_charset[i];
-			i++;
+		//localcharsetLen=0;
+		memcpy(&localcharsetLen, &gpu_charset_len, sizeof(localcharsetLen));
+		memcpy(localcharset, gpu_charset, localcharsetLen);
+		/*
+		while(gpu_charset[localcharsetLen]) {
+			localcharset[localcharsetLen] = gpu_charset[localcharsetLen];
+			localcharsetLen++;
 		}
-		localcharset[gpu_charset_len] = '\0';
-
+		*/
+		localcharset[localcharsetLen] = '\0';
+		
 	}
 
 	//Wait for all cache filling to finish
 	__syncthreads();
-    
-	
+   
     double start_token = *start + index; // base token
     double stop_token = *stop + index;
     double iter = 0;
@@ -121,70 +119,56 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 
     if(stop_token > *stop)
 		stop_token -= index;
-	
+
+	if(start_token > *stop) return;
 	
 	for(iter = start_token; iter <= stop_token; iter += index)
 	{
-	
-		//ToBase(iter, input, sizeof(input)-1, localcharset, localcharsetLen);
-		int r = 0, biter = 0;
+
+		int base_r = 0;
+		int base_iter=0;
 		float number = iter - 1;
+
+		
+		memset(input, 0, sizeof(input));
+
 		if(number < 0) {
 			input[0] = '\0';
+		} else {
+			do {
+				if(base_iter > (sizeof(input)-1)) break;
+				base_r = floor(fmod(number, localcharsetLen));
+				if(base_r < localcharsetLen)
+					input[base_iter++] = localcharset[base_r];
+				else
+					input[base_iter++] = '=';
+				number = floor(number / localcharsetLen) - 1;
+			} while(number >= 0);
 		}
-		do {
-			if(biter > (sizeof(input)-1)) break;
-			r =  floor(fmod(number, localcharsetLen)); //number % (this->charsetLen)
-			if(r < localcharsetLen)
-				input[biter++] = localcharset[r];
-			else
-				input[biter++] = '=';
-			if(biter >= localcharsetLen) break;
-			number = (number / localcharsetLen) - 1;
-		} while(number >= 0);
+		input[base_iter] = '\0';
+		
+		char *p = input;
+		char *q = p;
+		while(q && *q) ++q;
+		for(--q; p < q; ++p, --q)
+			*p = *p ^ *q,
+			*q = *p ^ *q,
+			*p = *p ^ *q;
 
-		input[biter] = '\0';
-		
-		i=0;
-		
+
+		// ToBase(iter, input, sizeof(input)-1);
 		size_t inputLen = my_strlen(input);
-
-		if (i<(inputLen/2)) {
-			char c;
-			c=input[i];
-			input[i]=input[inputLen-i-1];
-			input[inputLen-i-1]=c;
-		}
-
-		// this breaks if > than 16 chars
-		// #include "md5 codes"
-		uint4 i0;
-		uint a, b, c, d;
-		/*
-		input[0]='a';
-		input[1]='d';
-		input[2]='m';
-		input[3]='i';
-		input[4]='n';
-		input[5]='\0';
-		*/
-
-		memcpy(&i0.x, input + 0, sizeof(i0.x));
-		memcpy(&i0.y, input + 0 + sizeof(i0.x), sizeof(i0.y));
-		memcpy(&i0.z, input + 0 + sizeof(i0.x) + sizeof(i0.z), sizeof(i0.z));
-
-		md5_transform(i0, a, b, c , d);
-		memcpy(retBuf, &a, sizeof(a));
-		memcpy(retBuf + sizeof(a), &b, sizeof(b));
-		memcpy(retBuf + sizeof(a) + sizeof(b), &c, sizeof(c));
-		memcpy(retBuf + sizeof(a) + sizeof(b) + sizeof(c), &d, sizeof(d));
+		
+		GPUMD5Init(&ctx);
+		GPUMD5Update(&ctx, (unsigned char *)input, inputLen);
+		GPUMD5Final(&ctx);
 
 		unsigned long ihash=0;
 		int match=0;
 		
 		for(ihash=0; ihash < *gpuHashListCount; ihash++) {
 			
-			if(!my_memcmp(retBuf, (unsigned char *)gpuHashList[ihash], 16)) {
+			if(!my_memcmp(ctx.digest, (unsigned char *)gpuHashList[ihash], 16)) {
 				match=1;
 				break;
 			}
@@ -193,17 +177,8 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 
 		if(match==1)
 		{	
-
-			for(i=0; i < 16; i++) {
-				matchHashList[matchCount][i] = retBuf[i];
-			}
-			
-
-			for(i=0; i < inputLen; i++) {
-				matchPassList[matchCount][i] = input[i];
-			}
-			matchHashList[matchCount][i] = '\0';
-			
+			memcpy(matchHashList[matchCount], retBuf, 16);
+			memcpy(matchPassList[matchCount], input, inputLen+1);
 			matchCount++;
 	
 			if(matchCount + 1 > *maxSuccess)
