@@ -308,7 +308,7 @@ void *BruteForce::NewThread() {
 					pair2.second = ((long double) pair.first + final_second + sub_amnt);
  					CPUkeyspaceList.push_back(pair2);
 					cur -= (pair2.second - pair2.first);
-					final_second += (pair2.second - pair2.first) + 1;
+					final_second += (pair2.second - pair2.first);
 				}
 				
 
@@ -323,7 +323,7 @@ void *BruteForce::NewThread() {
 						pair2.second = ((long double) pair.first + final_second + sub_amnt);
 						GPUkeyspaceList.push_back(pair2);
 						cur -= (pair2.second - pair2.first);
-						final_second += (pair2.second - pair2.first) + 1;
+						final_second += (pair2.second - pair2.first) ;
 					}
 				}
 				current_iter = pair2.second + 1;
@@ -337,6 +337,10 @@ void *BruteForce::NewThread() {
 			}
 
 			qDebug() << "CPUKeyspaceList size " << CPUkeyspaceList.size();
+			
+			qDebug() << "GPUKeyspaceList size " << GPUkeyspaceList.size();
+
+			keyspaceList.pop_front();
 		}
 		keyspaceList.clear();
 
@@ -517,7 +521,7 @@ void *BruteForce::NewThreadCPU(void *param, int thread_id) {
 					token.first++;
 				}
 			}
-			CPUkeyspaceList.remove(token); //pop_front();
+			CPUkeyspaceList.remove(*iter); 
 			//qDebug() << "NEW CPUKeyspaceList size " << CPUkeyspaceList.size();
 		}
 
@@ -804,7 +808,7 @@ void *BruteForce::NewThreadGPUGPU(void *param, int thread_id) {
 				cudaFree(gpuStop);
 				cudaFree(gpuSuccessMax);
 			}
-			GPUkeyspaceList.remove(token);
+			GPUkeyspaceList.remove(*iter); //pop_front(); //(token);
 		}
 
 		

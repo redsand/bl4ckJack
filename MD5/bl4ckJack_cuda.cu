@@ -86,27 +86,22 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 	MD5_CTX ctx;
     char input[256]; // max len of our passwd
-    unsigned char retBuf[32];
- 
+    
     // prime into shared regional memory
     // because i was told this is faster than device memory
     __shared__ char localcharset[256];
-    __shared__ int localcharsetLen;
+    __shared__ unsigned int localcharsetLen;
 
 	if(threadIdx.x == 0)
 	{
 		// load charset/len from gpu mem
-		//localcharsetLen=0;
-		memcpy(&localcharsetLen, &gpu_charset_len, sizeof(localcharsetLen));
-		memcpy(localcharset, gpu_charset, localcharsetLen);
-		/*
+		//memcpy(&localcharsetLen, &gpu_charset_len, sizeof(localcharsetLen));
+		localcharsetLen = 0;
 		while(gpu_charset[localcharsetLen]) {
 			localcharset[localcharsetLen] = gpu_charset[localcharsetLen];
 			localcharsetLen++;
 		}
-		*/
 		localcharset[localcharsetLen] = '\0';
-		
 	}
 
 	//Wait for all cache filling to finish
@@ -125,11 +120,11 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 	for(iter = start_token; iter <= stop_token; iter += index)
 	{
 
+		
 		int base_r = 0;
 		int base_iter=0;
 		float number = iter - 1;
 
-		
 		memset(input, 0, sizeof(input));
 
 		if(number < 0) {
@@ -155,7 +150,7 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 			*q = *p ^ *q,
 			*p = *p ^ *q;
 
-
+		
 		// ToBase(iter, input, sizeof(input)-1);
 		size_t inputLen = my_strlen(input);
 		
@@ -163,29 +158,36 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 		GPUMD5Update(&ctx, (unsigned char *)input, inputLen);
 		GPUMD5Final(&ctx);
 
-		unsigned long ihash=0;
-		int match=0;
 		
+		int ihash=0;
+		int match=0;
 		for(ihash=0; ihash < *gpuHashListCount; ihash++) {
-			
-			if(!my_memcmp(ctx.digest, (unsigned char *)gpuHashList[ihash], 16)) {
+		
+			if(!my_memcmp(ctx.digest, (unsigned char *)gpuHashList[ihash], 16))
+			{
 				match=1;
 				break;
 			}
-			
 		}
 
+		
 		if(match==1)
 		{	
-			memcpy(matchHashList[matchCount], retBuf, 16);
-			memcpy(matchPassList[matchCount], input, inputLen+1);
+			int kmp=0;
+			for(kmp=0; kmp < 16; kmp++) {
+				matchHashList[matchCount][kmp] = (char)ctx.digest[kmp];
+			}
+			//memcpy(matchHashList[matchCount], ctx.digest, 16);
+			for(kmp=0; kmp <= inputLen; kmp++) {
+				matchPassList[matchCount][kmp] = (char)input[kmp];
+			}
+			//memcpy(matchPassList[matchCount], input, inputLen+1);
 			matchCount++;
 	
 			if(matchCount + 1 > *maxSuccess)
 				break;			
 		}
-
-		//if(threadIdx.x == 0)
+		
 		if(*start < iter)
 			*start = iter;
 
@@ -200,7 +202,7 @@ extern "C" __global__ __declspec(dllexport) void bl4ckJackGenerateGPUInternal(do
 
 extern "C" __declspec(dllexport) void bl4ckJackGenerateGPU(int block, int thread, int shmem, double *start, double *stop, int maxIterations, char **gpuHashList, int *gpuHashListCount, int *matchCount) {
 
-	//bl4ckJackGenerateGPUInternal<<<block,thread,shmem>>>(start, stop, maxIterations, matchCount);
+	//bl4ckJackGenerateGPUInternal<<<block,thread,shmem>>>(start, stop, maxIterations, gpuHashList, gpuHashListCount, matchCount);
 	bl4ckJackGenerateGPUInternal<<<block,thread>>>(start, stop, maxIterations, gpuHashList, gpuHashListCount, matchCount);
 	
 	cudaThreadSynchronize();

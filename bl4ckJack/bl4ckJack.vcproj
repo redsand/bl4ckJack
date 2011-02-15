@@ -17,12 +17,6 @@
 		/>
 	</Platforms>
 	<ToolFiles>
-		<DefaultToolFile
-			FileName="NvCudaDriverApi.rules"
-		/>
-		<DefaultToolFile
-			FileName="NvCudaRuntimeApi.rules"
-		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -35,13 +29,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -118,13 +106,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -202,13 +184,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -284,13 +260,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -366,13 +336,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -446,13 +410,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -528,13 +486,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -611,13 +563,7 @@
 				Name="VCPreBuildEventTool"
 			/>
 			<Tool
-				Name="Driver API Build Rule"
-			/>
-			<Tool
 				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="Cudart Build Rule"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"

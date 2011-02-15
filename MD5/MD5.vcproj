@@ -24,6 +24,12 @@
 			FileName="NvCudaRuntimeApi.rules"
 		/>
 		<DefaultToolFile
+			FileName="NsightCudaDriverApi.v31.rules"
+		/>
+		<DefaultToolFile
+			FileName="NsightCudaRuntimeApi.v31.rules"
+		/>
+		<DefaultToolFile
 			FileName="NvCudaDriverApi.v3.2.rules"
 		/>
 		<DefaultToolFile
@@ -671,16 +677,6 @@
 			<File
 				RelativePath=".\bl4ckJack_cuda.cu"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="Cudart Build Rule"
-						GPUDebugInfo="true"
-						HostDebugInfo="true"
-						FastMath="true"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\bl4ckJack_module.cpp"

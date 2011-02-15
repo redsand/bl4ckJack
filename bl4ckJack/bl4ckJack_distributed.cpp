@@ -382,17 +382,18 @@ void bl4ckJackBrute::doWork() {
 			if(pps > 0)
 				emit updateBruteStatus(3, pct, tr("Currently bruteforcing with %1 available nodes (%2 Mil/sec).").arg(successfulServerList.count()).arg(tmp.sprintf("%.2f",(double)pps)));
 		}
-		msleep(1000);
+		msleep(500);
 	}
 
 	for(i=0; i < serverConList.count(); i++) {
 		delete serverConList[i];
 	}
 
-	serverConList.clear();
-
 	if(keysLeft <= 0) {
-		emit updateBruteStatus(3, pct, tr("Bruteforcing  %1 available nodes completed successfully."));
+		emit updateBruteStatus(3, pct, tr("Bruteforcing  %1 available nodes completed successfully.").arg(serverConList.count()));
 	}
 	distributedServer->terminate();
+	
+	serverConList.clear();
+	return;
 }
